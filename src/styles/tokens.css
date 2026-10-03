@@ -1,0 +1,53 @@
+:root {
+  /* Pastel Child-Friendly Palette */
+  --color-mint-light: #EBF8F2;
+  --color-mint: #9FE2C8;
+  --color-mint-dark: #429878;
+  
+  --color-cream-bg: #FFFDF9;
+  --color-cream-card: #FFFFFF;
+  --color-cream-subtle: #F6F3EC;
+  
+  --color-coral-light: #FFEAE7;
+  --color-coral: #FF7A6B;
+  --color-coral-dark: #D94838;
+  
+  --color-sky-light: #E8F4FD;
+  --color-sky: #5AA9E6;
+  --color-sky-dark: #2F7DB8;
+  
+  --color-banana-light: #FFF8D6;
+  --color-banana: #FFD43F;
+  --color-banana-dark: #D4A300;
+  
+  --color-text-main: #2D3748;
+  --color-text-muted: #718096;
+  --color-text-light: #A0AEC0;
+  
+  --color-border: #E2E8F0;
+  --color-border-card: #EAE6DF;
+  
+  /* Status Colors */
+  --color-ok: #38A169;
+  --color-ok-bg: #F0FFF4;
+  --color-ng: #E53E3E;
+  --color-ng-bg: #FFF5F5;
+  --color-unsure: #DD6B20;
+  --color-unsure-bg: #FFFAF0;
+  
+  /* Fonts */
+  --font-kaiti: "TW-Kai", "BiauKai", "DFKai-SB", "標楷體", "Kaiti TC", "Noto Serif TC", serif;
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "Microsoft JhengHei", sans-serif;
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(45, 55, 72, 0.08);
+  --shadow-lg: 0 8px 24px rgba(45, 55, 72, 0.12);
+  --shadow-chunky: 0 4px 0 rgba(0, 0, 0, 0.12);
+  
+  /* Radii */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-pill: 9999px;
+}

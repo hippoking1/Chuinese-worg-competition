@@ -1,0 +1,89 @@
+@import './tokens.css';
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-ui);
+  background-color: var(--color-cream-bg);
+  color: var(--color-text-main);
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: transform 0.1s ease, filter 0.15s ease;
+}
+
+button:active {
+  transform: translateY(2px);
+}
+
+/* Chunky friendly buttons */
+.btn-chunky {
+  font-size: 1.15rem;
+  font-weight: 700;
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.15);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-chunky:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary {
+  background: var(--color-mint);
+  color: #1A4D3B;
+  border-bottom: 3px solid var(--color-mint-dark);
+}
+
+.btn-coral {
+  background: var(--color-coral);
+  color: white;
+  border-bottom: 3px solid var(--color-coral-dark);
+}
+
+.btn-sky {
+  background: var(--color-sky);
+  color: white;
+  border-bottom: 3px solid var(--color-sky-dark);
+}
+
+.btn-banana {
+  background: var(--color-banana);
+  color: #5A4300;
+  border-bottom: 3px solid var(--color-banana-dark);
+}
+
+.btn-subtle {
+  background: var(--color-cream-subtle);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+
+/* KaiTi font for Chinese character examination */
+.font-kaiti {
+  font-family: var(--font-kaiti);
+}
+
+/* Card utility */
+.card-chunky {
+  background: var(--color-cream-card);
+  border: 2px solid var(--color-border-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
