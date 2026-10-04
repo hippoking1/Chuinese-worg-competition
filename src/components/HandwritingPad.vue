@@ -315,4 +315,20 @@ onUnmounted(() => {
   border-color: var(--color-coral);
   color: var(--color-coral-dark);
 }
+
+@media (max-width: 820px), (orientation: portrait) {
+  .canvas-wrapper {
+    min-height: 160px;
+  }
+
+  .pad-toolbar {
+    margin-top: 6px;
+    gap: 8px;
+  }
+
+  .tool-btn {
+    font-size: 0.85rem;
+    padding: 6px 14px;
+  }
+}
 </style>

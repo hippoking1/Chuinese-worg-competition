@@ -230,7 +230,12 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
   max-height: 100vh;
+  max-height: 100dvh;
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
   overflow: hidden;
   background: var(--color-cream-bg);
   padding: 12px 18px;
@@ -242,6 +247,7 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   height: 52px;
+  flex-shrink: 0;
 }
 
 .header-left, .header-right {
@@ -281,6 +287,7 @@ onMounted(async () => {
   display: flex;
   gap: 16px;
   min-height: 0;
+  width: 100%;
 }
 
 .panel-left {
@@ -289,6 +296,7 @@ onMounted(async () => {
   flex-direction: column;
   gap: 12px;
   justify-content: center;
+  min-width: 0;
 }
 
 .panel-right {
@@ -297,6 +305,7 @@ onMounted(async () => {
   flex-direction: column;
   justify-content: center;
   position: relative;
+  min-width: 0;
 }
 
 .practice-feedback-card {
@@ -332,10 +341,16 @@ onMounted(async () => {
   align-items: center;
   gap: 16px;
   height: 60px;
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .footer-dots {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .footer-actions {
@@ -346,8 +361,70 @@ onMounted(async () => {
   padding: 10px 24px;
 }
 
-/* Left handed layout support */
+/* Left handed layout support (desktop / landscape) */
 .left-handed .exam-main {
   flex-direction: row-reverse;
+}
+
+/* Mobile & Tablet Portrait Layout */
+@media (max-width: 820px), (orientation: portrait) {
+  .exam-page {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .exam-header {
+    height: 44px;
+  }
+
+  .btn-exit {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
+
+  .progress-pill {
+    padding: 4px 10px;
+    font-size: 0.85rem;
+  }
+
+  .btn-submit {
+    padding: 6px 14px;
+    font-size: 0.9rem;
+  }
+
+  .exam-main {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .panel-left {
+    flex: 0 0 auto;
+    width: 100%;
+    gap: 6px;
+  }
+
+  .panel-right {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+
+  .practice-feedback-card {
+    padding: 6px 12px;
+  }
+
+  .exam-footer {
+    height: 48px;
+    gap: 8px;
+  }
+
+  .btn-next {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+
+  .left-handed .exam-main {
+    flex-direction: column;
+  }
 }
 </style>

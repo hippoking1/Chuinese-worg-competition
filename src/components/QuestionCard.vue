@@ -228,4 +228,51 @@ function speakContext() {
   color: var(--color-text-muted);
   border: 1px solid var(--color-border);
 }
+
+@media (max-width: 820px), (orientation: portrait) {
+  .question-card {
+    padding: 10px 14px;
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .card-header {
+    gap: 6px;
+  }
+
+  .type-badge {
+    font-size: 0.8rem;
+    padding: 2px 10px;
+  }
+
+  .q-num {
+    font-size: 0.85rem;
+  }
+
+  .instruction {
+    font-size: 0.95rem;
+  }
+
+  .phrase-display {
+    font-size: 2.2rem;
+    gap: 8px;
+    margin: 4px 0;
+  }
+
+  .char-item {
+    min-width: 40px;
+  }
+
+  .empty-square {
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
+    border-radius: 8px;
+  }
+
+  .box-zhuyin {
+    font-size: 1rem;
+  }
+}
 </style>

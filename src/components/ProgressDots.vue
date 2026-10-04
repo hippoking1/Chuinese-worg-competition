@@ -53,17 +53,23 @@ defineEmits<{
 
 const scrollRef = ref<HTMLDivElement | null>(null);
 
+function scrollToCurrent() {
+  const container = scrollRef.value;
+  if (!container) return;
+  const target = container.children[props.currentIndex] as HTMLElement;
+  if (target) {
+    const scrollLeft = target.offsetLeft - container.clientWidth / 2 + target.clientWidth / 2;
+    container.scrollTo({
+      left: Math.max(0, scrollLeft),
+      behavior: 'smooth'
+    });
+  }
+}
+
 watch(
   () => props.currentIndex,
-  idx => {
-    nextTick(() => {
-      const container = scrollRef.value;
-      if (!container) return;
-      const target = container.children[idx] as HTMLElement;
-      if (target) {
-        target.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-      }
-    });
+  () => {
+    nextTick(scrollToCurrent);
   }
 );
 </script>
@@ -74,6 +80,9 @@ watch(
   align-items: center;
   gap: 8px;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   background: white;
   padding: 8px 12px;
   border-radius: var(--radius-pill);
@@ -108,6 +117,7 @@ watch(
   scrollbar-width: none;
   padding: 4px 0;
   flex: 1;
+  min-width: 0;
 }
 
 .dots-scroll::-webkit-scrollbar {

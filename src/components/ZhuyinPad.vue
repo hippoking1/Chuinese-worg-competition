@@ -370,4 +370,51 @@ defineExpose({
   font-weight: 700;
   color: var(--color-coral-dark);
 }
+
+@media (max-width: 820px), (orientation: portrait) {
+  .zhuyin-pad-container {
+    gap: 6px;
+    height: 100%;
+  }
+
+  .zhuyin-layout {
+    gap: 10px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .neutral-btn {
+    padding: 3px 10px;
+    font-size: 0.8rem;
+  }
+
+  .slot-item {
+    gap: 2px;
+  }
+
+  .slot-canvas-wrap {
+    height: 72px;
+  }
+
+  .slot-canvas-wrap :deep(.canvas-wrapper) {
+    min-height: 72px;
+  }
+
+  .tone-canvas-wrap {
+    height: 100%;
+    min-height: 220px;
+  }
+
+  .tone-canvas-wrap :deep(.canvas-wrapper) {
+    min-height: 220px;
+  }
+
+  .zhuyin-actions {
+    padding: 4px 10px;
+  }
+
+  .preview-val {
+    font-size: 1.1rem;
+  }
+}
 </style>
