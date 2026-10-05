@@ -596,53 +596,63 @@ onUnmounted(() => {
   font-weight: 500;
 }
 
-/* Responsive for Mobile Portrait */
-@media (max-width: 820px), (orientation: portrait) {
+/* Responsive for Mobile Portrait & Compact Screens */
+@media (max-width: 820px), (orientation: portrait), (max-height: 520px) {
   .zhuyin-keyboard-container {
-    padding: 8px 10px;
-    gap: 8px;
+    padding: 6px 8px;
+    gap: 6px;
   }
 
   .input-display-row {
-    padding: 6px 12px;
-    min-height: 48px;
+    padding: 4px 10px;
+    min-height: 42px;
   }
 
   .display-box {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     letter-spacing: 2px;
   }
 
   .btn-action {
-    padding: 6px 10px;
-    font-size: 0.8rem;
+    padding: 5px 8px;
+    font-size: 0.78rem;
   }
 
   .keyboard-grid {
-    gap: 5px;
-  }
-
-  .kb-row {
     gap: 4px;
   }
 
+  .kb-row {
+    gap: 3px;
+  }
+
   .key-btn {
-    height: 40px;
-    font-size: 1.2rem;
+    height: 38px;
+    font-size: 1.15rem;
     border-radius: 6px;
   }
 
   .key-tone {
-    font-size: 1.35rem;
+    font-size: 1.3rem;
   }
 
   .keyboard-legend {
-    gap: 10px;
-    font-size: 0.75rem;
+    gap: 8px;
+    font-size: 0.72rem;
   }
 
   .desktop-hint {
     display: none;
+  }
+}
+
+@media (max-height: 480px) {
+  .key-btn {
+    height: 30px;
+    font-size: 1rem;
+  }
+  .input-display-row {
+    min-height: 36px;
   }
 }
 </style>

@@ -9,7 +9,8 @@ export default defineConfig({
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'questions.json'],
+      injectRegister: 'auto',
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'questions.json', 'mascot.svg'],
       manifest: {
         name: '字音字形小達人',
         short_name: '字音字形',
@@ -32,7 +33,21 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,json,woff2}']
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,json,woff2}'],
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
+        runtimeCaching: [
+          {
+            // For HTML pages / navigations, always check network first to get latest version immediately
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'pages-cache',
+              networkTimeoutSeconds: 3
+            }
+          }
+        ]
       }
     })
   ],

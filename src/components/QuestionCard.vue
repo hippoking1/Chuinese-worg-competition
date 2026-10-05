@@ -229,7 +229,7 @@ function speakContext() {
   border: 1px solid var(--color-border);
 }
 
-@media (max-width: 820px), (orientation: portrait) {
+@media (max-width: 820px), (orientation: portrait), (max-height: 520px) {
   .question-card {
     padding: 10px 14px;
     gap: 8px;

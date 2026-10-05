@@ -80,6 +80,17 @@
           {{ isSyncing ? '同步中...' : '立即同步' }}
         </button>
       </div>
+
+      <!-- 6. App Version & Force Update -->
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-title">軟體版本與更新 (PWA)</span>
+          <span class="setting-desc">目前版本：v1.3.0 (最新版)。App 會在每次開啟或連網時自動抓取最新版本；若手機顯示舊畫面，可點此強制清除快取並載入。</span>
+        </div>
+        <button type="button" class="btn-sync" :disabled="isUpdatingApp" @click="forceUpdateApp">
+          {{ isUpdatingApp ? '更新中...' : '🔄 檢查並強制更新' }}
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -93,6 +104,7 @@ import { useSettingsStore } from '../stores/settings';
 const router = useRouter();
 const settings = useSettingsStore();
 const isSyncing = ref(false);
+const isUpdatingApp = ref(false);
 
 async function handleSync() {
   isSyncing.value = true;
@@ -103,6 +115,31 @@ async function handleSync() {
     alert('同步失敗，請檢查網路連線或稍後再試。');
   } finally {
     isSyncing.value = false;
+  }
+}
+
+async function forceUpdateApp() {
+  isUpdatingApp.value = true;
+  try {
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const reg of registrations) {
+        await reg.update();
+      }
+    }
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      for (const key of keys) {
+        await caches.delete(key);
+      }
+    }
+    alert('已成功清除本機舊快取！即將重新載入最新版本...');
+    window.location.reload();
+  } catch (err: any) {
+    alert(`更新失敗: ${err.message || '請重新整理網頁'}`);
+    window.location.reload();
+  } finally {
+    isUpdatingApp.value = false;
   }
 }
 </script>

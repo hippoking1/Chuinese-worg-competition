@@ -244,13 +244,19 @@ onUnmounted(() => {
   align-items: center;
   width: 100%;
   height: 100%;
+  min-height: 0;
+  flex: 1;
 }
 
 .canvas-wrapper {
   position: relative;
   width: 100%;
   height: 100%;
-  min-height: 220px;
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 1 / 1;
+  margin: 0 auto;
+  min-height: 140px;
   background: #FFFDF9;
   border: 3px solid var(--color-mint);
   border-radius: var(--radius-lg);
@@ -282,7 +288,7 @@ onUnmounted(() => {
 .pad-toolbar {
   display: flex;
   gap: 12px;
-  margin-top: 10px;
+  margin-top: 8px;
   width: 100%;
   justify-content: flex-end;
 }
@@ -316,19 +322,19 @@ onUnmounted(() => {
   color: var(--color-coral-dark);
 }
 
-@media (max-width: 820px), (orientation: portrait) {
+@media (max-width: 820px), (orientation: portrait), (max-height: 520px) {
   .canvas-wrapper {
-    min-height: 160px;
+    min-height: 120px;
   }
 
   .pad-toolbar {
-    margin-top: 6px;
+    margin-top: 4px;
     gap: 8px;
   }
 
   .tool-btn {
-    font-size: 0.85rem;
-    padding: 6px 14px;
+    font-size: 0.82rem;
+    padding: 5px 12px;
   }
 }
 </style>

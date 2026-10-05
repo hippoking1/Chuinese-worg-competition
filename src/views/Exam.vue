@@ -225,19 +225,24 @@ onMounted(() => {
 
 <style scoped>
 .exam-page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
   height: 100vh;
   height: 100dvh;
   max-height: 100vh;
   max-height: 100dvh;
-  width: 100%;
+  width: 100vw;
   max-width: 100vw;
   box-sizing: border-box;
   overflow: hidden;
   background: var(--color-cream-bg);
-  padding: 12px 18px;
-  gap: 12px;
+  padding: 10px 16px;
+  gap: 10px;
 }
 
 .exam-header {
@@ -364,11 +369,11 @@ onMounted(() => {
   flex-direction: row-reverse;
 }
 
-/* Mobile & Tablet Portrait Layout */
-@media (max-width: 820px), (orientation: portrait) {
+/* Portrait Layout (Phones & Tablets in portrait) */
+@media (orientation: portrait), (max-width: 768px) {
   .exam-page {
-    padding: 8px 10px;
-    gap: 8px;
+    padding: 6px 10px;
+    gap: 6px;
   }
 
   .exam-header {
@@ -393,11 +398,15 @@ onMounted(() => {
   .exam-main {
     flex-direction: column;
     gap: 8px;
+    min-height: 0;
+    flex: 1;
+    overflow: hidden;
   }
 
   .panel-left {
     flex: 0 0 auto;
     width: 100%;
+    max-width: 100%;
     gap: 6px;
   }
 
@@ -405,6 +414,8 @@ onMounted(() => {
     flex: 1;
     min-height: 0;
     width: 100%;
+    max-width: 100%;
+    overflow: hidden;
   }
 
   .practice-feedback-card {
@@ -412,7 +423,7 @@ onMounted(() => {
   }
 
   .exam-footer {
-    height: 48px;
+    height: 46px;
     gap: 8px;
   }
 
@@ -423,6 +434,58 @@ onMounted(() => {
 
   .left-handed .exam-main {
     flex-direction: column;
+  }
+}
+
+/* Compact Landscape Layout (Mobile phones held horizontally) */
+@media (orientation: landscape) and (max-height: 520px) {
+  .exam-page {
+    padding: 4px 10px;
+    gap: 4px;
+  }
+
+  .exam-header {
+    height: 38px;
+  }
+
+  .btn-exit {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+  }
+
+  .progress-pill {
+    padding: 2px 8px;
+    font-size: 0.8rem;
+  }
+
+  .btn-submit {
+    padding: 4px 10px;
+    font-size: 0.85rem;
+  }
+
+  .exam-main {
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .panel-left {
+    flex: 1;
+    max-width: 46%;
+  }
+
+  .panel-right {
+    flex: 1.2;
+    max-width: 54%;
+  }
+
+  .exam-footer {
+    height: 40px;
+    gap: 6px;
+  }
+
+  .btn-next {
+    padding: 6px 12px;
+    font-size: 0.85rem;
   }
 }
 </style>
