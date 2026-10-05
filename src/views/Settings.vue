@@ -309,4 +309,41 @@ input:checked + .slider {
 input:checked + .slider:before {
   transform: translateX(24px);
 }
+
+@media (max-width: 640px) {
+  .settings-page {
+    padding: 10px 10px 30px;
+    gap: 12px;
+  }
+
+  .settings-header {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+
+  .page-title {
+    font-size: 1.25rem;
+  }
+
+  .btn-back {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+
+  .settings-card {
+    padding: 16px 14px;
+    gap: 16px;
+  }
+
+  .version-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .btn-update {
+    width: 100%;
+    text-align: center;
+  }
+}
 </style>

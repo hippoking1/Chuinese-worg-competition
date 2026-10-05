@@ -252,4 +252,54 @@ onMounted(() => {
   font-size: 1.1rem;
   color: var(--color-mint-dark);
 }
+
+@media (max-width: 640px) {
+  .wrong-book-page {
+    padding: 10px 10px 30px;
+    gap: 12px;
+  }
+
+  .wrong-header {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+
+  .page-title {
+    font-size: 1.25rem;
+  }
+
+  .btn-back {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+
+  .wrong-item {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .wrong-meta {
+    min-width: 50px;
+  }
+
+  .wrong-context {
+    font-size: 1.35rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ans-text {
+    font-size: 1.35rem;
+  }
+
+  .streak-badge {
+    padding: 4px 8px;
+    font-size: 0.72rem;
+  }
+
+  .streak-badge strong {
+    font-size: 0.95rem;
+  }
+}
 </style>

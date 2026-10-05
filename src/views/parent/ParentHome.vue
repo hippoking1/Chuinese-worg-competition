@@ -825,4 +825,59 @@ onMounted(async () => {
   font-size: 0.92rem;
   padding: 10px 16px;
 }
+
+@media (max-width: 640px) {
+  .parent-page {
+    padding: 10px 10px 30px;
+    gap: 12px;
+  }
+
+  .parent-header {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+
+  .page-title {
+    font-size: 1.2rem;
+  }
+
+  .admin-section {
+    padding: 16px 14px;
+    gap: 12px;
+  }
+
+  .version-section {
+    padding: 14px;
+  }
+
+  .version-banner-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .btn-force-update {
+    width: 100%;
+    text-align: center;
+  }
+
+  .gas-btn-group,
+  .cloud-q-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .gas-btn-group button,
+  .cloud-q-actions button,
+  .proof-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .bank-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+}
 </style>

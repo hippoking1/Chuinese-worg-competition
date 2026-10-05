@@ -240,5 +240,58 @@ onMounted(() => {
   margin-top: 14px;
   flex-wrap: wrap;
   justify-content: center;
+  width: 100%;
+}
+
+@media (max-width: 520px) {
+  .result-page {
+    padding: 12px;
+  }
+
+  .result-card {
+    padding: 24px 16px;
+    gap: 12px;
+  }
+
+  .result-title {
+    font-size: 1.5rem;
+  }
+
+  .star-item {
+    font-size: 2.2rem;
+  }
+
+  .score-num {
+    font-size: 3.8rem;
+  }
+
+  .score-unit {
+    font-size: 1.4rem;
+  }
+
+  .detail-grid {
+    gap: 8px;
+  }
+
+  .detail-box {
+    padding: 8px 4px;
+  }
+
+  .box-label {
+    font-size: 0.72rem;
+  }
+
+  .box-val {
+    font-size: 1.15rem;
+  }
+
+  .actions-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .actions-row button {
+    width: 100%;
+  }
 }
 </style>

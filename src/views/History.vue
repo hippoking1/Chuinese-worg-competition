@@ -269,4 +269,46 @@ onMounted(() => {
   color: var(--color-text-muted);
   gap: 2px;
 }
+
+@media (max-width: 640px) {
+  .history-page {
+    padding: 10px 10px 30px;
+    gap: 12px;
+  }
+
+  .history-header {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+
+  .page-title {
+    font-size: 1.25rem;
+  }
+
+  .btn-back {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+
+  .chart-card {
+    padding: 14px;
+  }
+
+  .attempt-item {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .attempt-scores {
+    gap: 10px;
+  }
+
+  .score-val {
+    font-size: 1.8rem;
+  }
+
+  .score-breakdown {
+    font-size: 0.75rem;
+  }
+}
 </style>

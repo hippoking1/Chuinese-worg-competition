@@ -884,4 +884,72 @@ async function startYearExam(year: number, type: 'sound' | 'form') {
 .btn-start-range:hover {
   background: #7C3AED;
 }
+
+@media (max-width: 640px) {
+  .home-page {
+    padding: 10px 10px 30px;
+    gap: 12px;
+  }
+
+  .home-header {
+    padding: 8px 12px;
+  }
+
+  .player-info {
+    padding: 2px 6px;
+    gap: 6px;
+  }
+
+  .player-avatar {
+    font-size: 1.5rem;
+  }
+
+  .player-name {
+    font-size: 1rem;
+  }
+
+  .tool-circle-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+  }
+
+  .modes-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .mode-card {
+    padding: 12px 14px;
+    gap: 12px;
+  }
+
+  .card-icon-badge {
+    width: 48px;
+    height: 48px;
+    font-size: 1.8rem;
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+  }
+
+  .card-desc {
+    font-size: 0.82rem;
+  }
+
+  .range-modal-card {
+    padding: 16px 12px;
+    gap: 14px;
+  }
+
+  .chips-row {
+    gap: 4px;
+  }
+
+  .chip-btn {
+    padding: 4px 8px;
+    font-size: 0.78rem;
+  }
+}
 </style>

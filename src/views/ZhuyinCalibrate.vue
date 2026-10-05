@@ -233,4 +233,34 @@ async function saveCurrentAndNext() {
   gap: 16px;
   text-align: center;
 }
+
+@media (max-width: 520px) {
+  .calibrate-page {
+    padding: 10px 10px 30px;
+    gap: 12px;
+  }
+
+  .calibrate-header {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+
+  .page-title {
+    font-size: 1.25rem;
+  }
+
+  .calibrate-card {
+    padding: 18px 14px;
+    gap: 12px;
+  }
+
+  .current-symbol {
+    font-size: 3.2rem;
+  }
+
+  .pad-wrap {
+    width: 220px;
+    height: 220px;
+  }
+}
 </style>
