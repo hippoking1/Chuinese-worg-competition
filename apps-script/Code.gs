@@ -62,6 +62,16 @@ function doGet(e) {
 
   var action = p.action;
 
+  if (action === 'ping') {
+    return jsonResponse({
+      ok: true,
+      message: 'pong',
+      questionsCount: readSheet('Questions').length,
+      attemptsCount: readSheet('Attempts').length,
+      version: cfg('questions_version')
+    });
+  }
+
   if (action === 'questions') {
     var currentVer = cfg('questions_version');
     if (p.v && p.v === currentVer) {
@@ -97,7 +107,9 @@ function doGet(e) {
 function doPost(e) {
   var body = {};
   try {
-    body = JSON.parse(e.postData.contents);
+    if (e && e.postData && e.postData.contents) {
+      body = JSON.parse(e.postData.contents);
+    }
   } catch (err) {
     return jsonResponse({ ok: false, error: 'Invalid JSON payload' });
   }
@@ -116,6 +128,10 @@ function doPost(e) {
     if (action === 'submitAttempt') {
       var a = body.attempt;
       var sheet = ss().getSheetByName('Attempts');
+      if (!sheet) {
+        sheet = ss().insertSheet('Attempts');
+        sheet.appendRow(['attempt_id', 'player_id', 'mode', 'year', 'started_at', 'duration_s', 'sound_correct', 'sound_total', 'form_correct', 'form_total', 'score', 'results_json']);
+      }
       // Duplicate prevention check
       var data = sheet.getDataRange().getValues();
       for (var i = 1; i < data.length; i++) {
