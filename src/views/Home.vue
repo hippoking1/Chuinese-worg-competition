@@ -278,7 +278,82 @@
             </div>
           </div>
 
-          <!-- 4. 模式與順序 -->
+          <!-- 4. 練習題數 -->
+          <div class="form-section">
+            <div class="section-label-row">
+              <label class="section-label">4. 練習題數：</label>
+              <span class="range-hint">（此範圍共有 {{ totalInRangeCount }} 題）</span>
+            </div>
+            <div class="chips-row">
+              <button
+                type="button"
+                class="chip-btn count-chip"
+                :class="{ active: rangeCountMode === 'all' }"
+                @click="setRangeCountMode('all')"
+              >
+                全部 ({{ totalInRangeCount }} 題)
+              </button>
+              <button
+                v-if="totalInRangeCount >= 10"
+                type="button"
+                class="chip-btn count-chip"
+                :class="{ active: rangeCountMode === 10 }"
+                @click="setRangeCountMode(10)"
+              >
+                10 題
+              </button>
+              <button
+                v-if="totalInRangeCount >= 20"
+                type="button"
+                class="chip-btn count-chip"
+                :class="{ active: rangeCountMode === 20 }"
+                @click="setRangeCountMode(20)"
+              >
+                20 題
+              </button>
+              <button
+                v-if="totalInRangeCount >= 30"
+                type="button"
+                class="chip-btn count-chip"
+                :class="{ active: rangeCountMode === 30 }"
+                @click="setRangeCountMode(30)"
+              >
+                30 題
+              </button>
+              <button
+                v-if="totalInRangeCount >= 50"
+                type="button"
+                class="chip-btn count-chip"
+                :class="{ active: rangeCountMode === 50 }"
+                @click="setRangeCountMode(50)"
+              >
+                50 題
+              </button>
+              <button
+                type="button"
+                class="chip-btn count-chip"
+                :class="{ active: rangeCountMode === 'custom' }"
+                @click="setRangeCountMode('custom')"
+              >
+                ✏️ 自訂題數
+              </button>
+            </div>
+
+            <!-- Custom count input -->
+            <div v-if="rangeCountMode === 'custom'" class="custom-range-row">
+              <span>自選題數：抽取</span>
+              <input
+                type="number"
+                v-model.number="rangeCustomCount"
+                min="1"
+                :max="totalInRangeCount"
+                class="num-input count-input"
+              />
+              <span>題（最多 {{ totalInRangeCount }} 題）</span>
+            </div>
+          </div>
+
+          <!-- 5. 模式與順序 -->
           <div class="form-section form-toggles-row">
             <div class="toggle-col">
               <label class="section-label">題目順序：</label>
@@ -327,18 +402,21 @@
 
           <!-- Summary & Start Button -->
           <div class="range-summary-card">
-            <span>預計抽出題目：<strong class="count-highlight">{{ computedRangeCount }}</strong> 題</span>
-            <span v-if="rangeTimed" class="time-hint">⏱ 限時 {{ Math.round(computedRangeCount * 6 / 60 * 10) / 10 }} 分鐘</span>
+            <div class="summary-text-col">
+              <span>預計練習：<strong class="count-highlight">{{ finalRangeCount }}</strong> 題</span>
+              <span class="range-total-note">（範圍總計 {{ totalInRangeCount }} 題）</span>
+            </div>
+            <span v-if="rangeTimed" class="time-hint">⏱ 限時 {{ Math.round(finalRangeCount * 6 / 60 * 10) / 10 }} 分鐘</span>
             <span v-else class="time-hint">📖 可隨時看標準答案</span>
           </div>
 
           <button
             type="button"
             class="btn-chunky btn-primary btn-start-range"
-            :disabled="computedRangeCount === 0"
+            :disabled="finalRangeCount === 0"
             @click="startRangeExam"
           >
-            <span>🚀 開始範圍練習</span>
+            <span>🚀 開始範圍練習 ({{ finalRangeCount }} 題)</span>
           </button>
         </div>
       </div>
@@ -408,6 +486,10 @@ const rangeEndNo = ref(25);
 const rangeShuffle = ref(false);
 const rangeTimed = ref(false);
 
+// Configurable question count in range
+const rangeCountMode = ref<'all' | 10 | 20 | 30 | 50 | 'custom'>('all');
+const rangeCustomCount = ref<number>(20);
+
 function openRangeModal() {
   showRangeModal.value = true;
 }
@@ -417,24 +499,49 @@ function setQuickRange(start: number, end: number) {
   rangeEndNo.value = end;
 }
 
-const computedRangeCount = computed(() => {
+function setRangeCountMode(mode: 'all' | 10 | 20 | 30 | 50 | 'custom') {
+  rangeCountMode.value = mode;
+  if (mode === 'custom' && (!rangeCustomCount.value || rangeCustomCount.value <= 0)) {
+    rangeCustomCount.value = Math.min(20, totalInRangeCount.value || 20);
+  }
+}
+
+// Total questions matching year, type, and startNo..endNo
+const totalInRangeQuestions = computed(() => {
   const start = Math.max(1, Math.min(rangeStartNo.value || 1, rangeEndNo.value || 100));
   const end = Math.min(100, Math.max(rangeStartNo.value || 1, rangeEndNo.value || 100));
-  const list = buildExamQuestions(qStore.questions, 'range', {
+  return buildExamQuestions(qStore.questions, 'range', {
     range: {
       year: rangeYear.value,
       type: rangeType.value,
       startNo: start,
-      endNo: end,
-      shuffle: rangeShuffle.value
+      endNo: end
     }
   });
-  return list.length;
+});
+
+const totalInRangeCount = computed(() => totalInRangeQuestions.value.length);
+
+// Final number of questions that will be given in the exam
+const finalRangeCount = computed(() => {
+  const total = totalInRangeCount.value;
+  if (total === 0) return 0;
+  if (rangeCountMode.value === 'all') {
+    return total;
+  }
+  let target = 0;
+  if (typeof rangeCountMode.value === 'number') {
+    target = rangeCountMode.value;
+  } else if (rangeCountMode.value === 'custom') {
+    target = rangeCustomCount.value || 1;
+  }
+  return Math.max(1, Math.min(target, total));
 });
 
 async function startRangeExam() {
   const start = Math.max(1, Math.min(rangeStartNo.value || 1, rangeEndNo.value || 100));
   const end = Math.min(100, Math.max(rangeStartNo.value || 1, rangeEndNo.value || 100));
+  const qCount = rangeCountMode.value === 'all' ? undefined : finalRangeCount.value;
   showRangeModal.value = false;
   await examStore.startExam('range', {
     range: {
@@ -443,7 +550,8 @@ async function startRangeExam() {
       startNo: start,
       endNo: end,
       shuffle: rangeShuffle.value,
-      timed: rangeTimed.value
+      timed: rangeTimed.value,
+      questionCount: qCount
     }
   });
   router.push('/exam');
@@ -810,6 +918,13 @@ async function startYearExam(year: number, type: 'sound' | 'form') {
   box-shadow: 0 2px 4px rgba(139, 92, 246, 0.3);
 }
 
+.count-chip.active {
+  background: #0D9488;
+  border-color: #0F766E;
+  color: white;
+  box-shadow: 0 2px 4px rgba(13, 148, 136, 0.3);
+}
+
 .custom-range-row {
   display: flex;
   align-items: center;
@@ -837,6 +952,15 @@ async function startYearExam(year: number, type: 'sound' | 'form') {
   border-color: #8B5CF6;
 }
 
+.count-input {
+  width: 72px;
+  border-color: #0D9488;
+}
+
+.count-input:focus {
+  border-color: #0F766E;
+}
+
 .form-toggles-row {
   display: flex;
   gap: 12px;
@@ -860,6 +984,21 @@ async function startYearExam(year: number, type: 'sound' | 'form') {
   font-size: 0.95rem;
   font-weight: 700;
   color: #5B21B6;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.summary-text-col {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.range-total-note {
+  font-size: 0.8rem;
+  color: #6D28D9;
+  font-weight: 500;
 }
 
 .count-highlight {

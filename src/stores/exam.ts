@@ -44,6 +44,7 @@ export const useExamStore = defineStore('exam', () => {
         endNo?: number;
         shuffle?: boolean;
         timed?: boolean;
+        questionCount?: number;
       };
     }
   ) {

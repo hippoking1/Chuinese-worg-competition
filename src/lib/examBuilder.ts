@@ -13,6 +13,7 @@ export function buildExamQuestions(
       startNo?: number;
       endNo?: number;
       shuffle?: boolean;
+      questionCount?: number;
     };
     mastery?: Record<string, MasteryRecord>;
   }
@@ -34,14 +35,22 @@ export function buildExamQuestions(
     if (range?.endNo) {
       list = list.filter(q => q.no <= range.endNo!);
     }
+
     if (range?.shuffle) {
-      return shuffle(list);
+      list = shuffle(list);
+    } else {
+      list = list.sort((a, b) => {
+        if (a.year !== b.year) return b.year - a.year;
+        if (a.type !== b.type) return a.type === 'sound' ? -1 : 1;
+        return a.no - b.no;
+      });
     }
-    return list.sort((a, b) => {
-      if (a.year !== b.year) return b.year - a.year;
-      if (a.type !== b.type) return a.type === 'sound' ? -1 : 1;
-      return a.no - b.no;
-    });
+
+    if (range?.questionCount && range.questionCount > 0 && range.questionCount < list.length) {
+      list = list.slice(0, range.questionCount);
+    }
+
+    return list;
   }
 
   if (mode === 'year') {
