@@ -1,4 +1,4 @@
-import type { ExamAttempt, Question } from '../types';
+import type { ExamAttempt, Player, Question } from '../types';
 import { addToOfflineOutbox, getOfflineOutbox, removeFromOfflineOutbox } from './db';
 
 export function normalizeGasUrl(raw: string): string {
@@ -109,6 +109,104 @@ export async function testGasConnection(customUrl?: string, customToken?: string
   }
 }
 
+export async function fetchPlayersFromCloud(): Promise<Player[] | null> {
+  const { url: GAS_URL, token: GAS_TOKEN } = getGasConfig();
+  if (!GAS_URL) return null;
+
+  try {
+    const url = new URL(GAS_URL);
+    url.searchParams.set('action', 'players');
+    if (GAS_TOKEN) url.searchParams.set('token', GAS_TOKEN);
+
+    const res = await fetch(url.toString());
+    if (!res.ok) return null;
+    const json = await res.json();
+    if (json.ok && Array.isArray(json.players)) {
+      return json.players.map((r: any) => ({
+        id: String(r.player_id || r.id),
+        nickname: String(r.nickname || ''),
+        avatar: String(r.avatar || 'owl'),
+        pinHash: String(r.pin_hash || r.pinHash || ''),
+        salt: String(r.salt || ''),
+        createdAt: String(r.created_at || r.createdAt || new Date().toISOString())
+      }));
+    }
+  } catch (err) {
+    console.warn('Failed to fetch players from Google Apps Script:', err);
+  }
+
+  return null;
+}
+
+export async function syncPlayersToCloud(players: Player[]): Promise<boolean> {
+  const { url: GAS_URL, token: GAS_TOKEN } = getGasConfig();
+  if (!GAS_URL || players.length === 0) return false;
+
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8'
+      },
+      body: JSON.stringify({
+        action: 'syncPlayers',
+        token: GAS_TOKEN,
+        players: players.map(p => ({
+          id: p.id,
+          nickname: p.nickname,
+          avatar: p.avatar,
+          pinHash: p.pinHash,
+          salt: p.salt,
+          createdAt: p.createdAt
+        }))
+      })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      return !!data.ok;
+    }
+  } catch (err) {
+    console.warn('Failed to sync players to cloud:', err);
+  }
+
+  return false;
+}
+
+export async function uploadQuestionsToCloud(
+  questions: Question[],
+  overwrite = true
+): Promise<{ ok: boolean; message: string; count?: number }> {
+  const { url: GAS_URL, token: GAS_TOKEN } = getGasConfig();
+  if (!GAS_URL) return { ok: false, message: '尚未設定 Google Apps Script 網址' };
+
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8'
+      },
+      body: JSON.stringify({
+        action: 'importQuestions',
+        token: GAS_TOKEN,
+        overwrite,
+        rows: questions
+      })
+    });
+
+    if (res.ok) {
+      const json = await res.json();
+      if (json.ok) {
+        return { ok: true, message: `成功匯入 ${json.count} 道題目至 Google 試算表！`, count: json.count };
+      }
+      return { ok: false, message: json.error || '匯入失敗' };
+    }
+    return { ok: false, message: `伺服器回應錯誤碼 HTTP ${res.status}` };
+  } catch (err: any) {
+    return { ok: false, message: `匯入失敗: ${err.message || '網路異常'}` };
+  }
+}
+
 export async function fetchQuestionsFromCloud(currentVersion?: string): Promise<{
   questions?: Question[];
   version?: string;
@@ -159,6 +257,7 @@ export async function submitAttemptToCloud(attempt: ExamAttempt): Promise<boolea
         attempt: {
           id: attempt.id,
           playerId: attempt.playerId,
+          playerName: attempt.playerName,
           mode: attempt.mode,
           year: attempt.year,
           startedAt: attempt.startedAt,

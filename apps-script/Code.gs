@@ -67,6 +67,7 @@ function doGet(e) {
       ok: true,
       message: 'pong',
       questionsCount: readSheet('Questions').length,
+      playersCount: readSheet('Players').length,
       attemptsCount: readSheet('Attempts').length,
       version: cfg('questions_version')
     });
@@ -125,6 +126,45 @@ function doPost(e) {
   try {
     var action = body.action;
 
+    if (action === 'syncPlayers') {
+      var playersList = body.players || [];
+      var pSheet = ss().getSheetByName('Players');
+      if (!pSheet) {
+        pSheet = ss().insertSheet('Players');
+        pSheet.appendRow(['player_id', 'nickname', 'avatar', 'pin_hash', 'salt', 'created_at']);
+      }
+      var data = pSheet.getDataRange().getValues();
+      var idRowMap = {};
+      for (var pIdx = 1; pIdx < data.length; pIdx++) {
+        idRowMap[String(data[pIdx][0])] = pIdx + 1; // 1-indexed row number
+      }
+
+      for (var k = 0; k < playersList.length; k++) {
+        var pl = playersList[k];
+        var rowNum = idRowMap[String(pl.id)];
+        if (rowNum) {
+          pSheet.getRange(rowNum, 2, 1, 5).setValues([[
+            pl.nickname,
+            pl.avatar,
+            pl.pinHash,
+            pl.salt,
+            pl.createdAt
+          ]]);
+        } else {
+          pSheet.appendRow([
+            pl.id,
+            pl.nickname,
+            pl.avatar,
+            pl.pinHash,
+            pl.salt,
+            pl.createdAt
+          ]);
+          idRowMap[String(pl.id)] = pSheet.getLastRow();
+        }
+      }
+      return jsonResponse({ ok: true, count: playersList.length });
+    }
+
     if (action === 'submitAttempt') {
       var a = body.attempt;
       var sheet = ss().getSheetByName('Attempts');
@@ -140,9 +180,27 @@ function doPost(e) {
         }
       }
 
+      // Format player display: Nickname (ID)
+      var playerDisplay = a.playerName;
+      if (!playerDisplay) {
+        var pSheet = ss().getSheetByName('Players');
+        if (pSheet) {
+          var pData = pSheet.getDataRange().getValues();
+          for (var pi = 1; pi < pData.length; pi++) {
+            if (pData[pi][0] == a.playerId) {
+              playerDisplay = pData[pi][1] + ' (' + a.playerId + ')';
+              break;
+            }
+          }
+        }
+      } else {
+        playerDisplay = a.playerName + ' (' + a.playerId + ')';
+      }
+      if (!playerDisplay) playerDisplay = a.playerId;
+
       sheet.appendRow([
         a.id,
-        a.playerId,
+        playerDisplay,
         a.mode,
         a.year || '',
         a.startedAt,
@@ -161,11 +219,38 @@ function doPost(e) {
     if (action === 'importQuestions') {
       var rows = body.rows || [];
       var qSheet = ss().getSheetByName('Questions');
-      for (var k = 0; k < rows.length; k++) {
-        var r = rows[k];
-        qSheet.appendRow([
-          r.id, r.type, r.year, r.level || '國小', r.no, r.context, r.target, r.char, r.zhuyin, r.alt_answers || '', r.tags || '', true, r.note || ''
-        ]);
+      if (!qSheet) {
+        qSheet = ss().insertSheet('Questions');
+      }
+      if (qSheet.getLastRow() === 0) {
+        qSheet.appendRow(['id', 'type', 'year', 'level', 'no', 'context', 'target', 'char', 'zhuyin', 'alt_answers', 'tags', 'enabled', 'note']);
+      }
+      if (body.overwrite) {
+        var lastR = qSheet.getLastRow();
+        if (lastR > 1) {
+          qSheet.getRange(2, 1, lastR - 1, 13).clearContent();
+        }
+      }
+      if (rows.length > 0) {
+        var matrix = rows.map(function(r) {
+          return [
+            r.id,
+            r.type,
+            r.year,
+            r.level || '國小',
+            r.no,
+            r.context,
+            r.target,
+            r.char,
+            r.zhuyin,
+            r.alt_answers || '',
+            r.tags || '',
+            r.enabled !== false,
+            r.note || ''
+          ];
+        });
+        var startRow = qSheet.getLastRow() + 1;
+        qSheet.getRange(startRow, 1, matrix.length, 13).setValues(matrix);
       }
       setCfg('questions_version', String(Date.now()));
       return jsonResponse({ ok: true, count: rows.length });

@@ -48,10 +48,31 @@ export const useQuestionsStore = defineStore('questions', () => {
     }
   }
 
+  async function syncQuestionsFromCloud(force = false): Promise<{ ok: boolean; count: number; message: string }> {
+    try {
+      const cloudRes = await fetchQuestionsFromCloud(force ? undefined : version.value);
+      if (cloudRes && cloudRes.notModified) {
+        return { ok: true, count: questions.value.length, message: '雲端題庫已是最新版本，無需更新。' };
+      }
+      if (cloudRes && cloudRes.questions && cloudRes.questions.length > 0) {
+        questions.value = cloudRes.questions;
+        version.value = cloudRes.version || String(Date.now());
+        localStorage.setItem('quiz_q_version', version.value);
+        await saveLocalQuestions(questions.value);
+        loaded.value = true;
+        return { ok: true, count: cloudRes.questions.length, message: `成功從 Google 試算表同步 ${cloudRes.questions.length} 道題目！` };
+      }
+      return { ok: false, count: 0, message: 'Google 試算表 Questions 分頁中尚無題目資料。' };
+    } catch (err: any) {
+      return { ok: false, count: 0, message: `同步失敗: ${err.message || '網路異常'}` };
+    }
+  }
+
   return {
     questions,
     version,
     loaded,
-    loadQuestions
+    loadQuestions,
+    syncQuestionsFromCloud
   };
 });

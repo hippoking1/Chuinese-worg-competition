@@ -173,6 +173,7 @@ export const useExamStore = defineStore('exam', () => {
 
     const pStore = usePlayerStore();
     const pid = pStore.currentPlayer?.id || 'guest';
+    const pName = pStore.currentPlayer?.nickname || '訪客';
     const elapsedSec = totalDurationSec.value > 0 ? totalDurationSec.value - timeRemainingSec.value : 0;
 
     let soundCorrect = 0, soundTotal = 0;
@@ -199,6 +200,7 @@ export const useExamStore = defineStore('exam', () => {
     const attempt: ExamAttempt = {
       id: 'attempt_' + Date.now(),
       playerId: pid,
+      playerName: pName,
       mode: currentMode.value,
       year: examYear.value,
       startedAt: new Date().toISOString(),

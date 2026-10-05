@@ -9,7 +9,17 @@
 
     <!-- 1. Kids Management -->
     <section class="admin-section card-chunky">
-      <h3 class="section-title">小朋友帳號管理 ({{ playerStore.players.length }}/3)</h3>
+      <div class="section-header-row">
+        <h3 class="section-title">小朋友帳號管理 ({{ playerStore.players.length }}/3)</h3>
+        <button
+          type="button"
+          class="btn-sync-players"
+          :disabled="syncingPlayers"
+          @click="syncPlayersNow"
+        >
+          {{ syncingPlayers ? '同步中...' : '☁️ 同步至試算表 (Players)' }}
+        </button>
+      </div>
       <div class="kids-list">
         <div v-for="kid in playerStore.players" :key="kid.id" class="kid-admin-row">
           <div class="kid-admin-info">
@@ -145,10 +155,16 @@
 
     <!-- 3. Question Bank Status & Proof -->
     <section class="admin-section card-chunky">
-      <h3 class="section-title">題庫現況與校對</h3>
+      <div class="section-header-row">
+        <h3 class="section-title">📚 Google 試算表題庫 (Questions) 與校對</h3>
+      </div>
+      <p class="section-desc">
+        Google 試算表中的 <strong>Questions</strong> 工作表為雲端題庫中心。家長或老師可自由在試算表中新增自訂題目、停用題目 (enabled: FALSE) 或調整字音字型標準答案。修改後 App 會自動同步更新。
+      </p>
+
       <div class="bank-stats">
         <div class="stat-pill">
-          <span>總題數</span>
+          <span>本機載入題數</span>
           <strong>{{ qStore.questions.length }} 題</strong>
         </div>
         <div class="stat-pill">
@@ -169,6 +185,25 @@
         </div>
       </div>
 
+      <div class="cloud-q-actions">
+        <button
+          type="button"
+          class="btn-chunky btn-primary q-action-btn"
+          :disabled="uploadingQuestions"
+          @click="uploadQuestionsToSheet"
+        >
+          {{ uploadingQuestions ? '題目上傳中...' : '📤 將內建 400 題匯入至試算表 (Questions)' }}
+        </button>
+        <button
+          type="button"
+          class="btn-chunky btn-save q-action-btn"
+          :disabled="syncingQuestions"
+          @click="syncQuestionsFromSheet"
+        >
+          {{ syncingQuestions ? '題庫同步中...' : '🔄 從試算表同步最新題目' }}
+        </button>
+      </div>
+
       <div class="proof-links">
         <a href="./proof.html" target="_blank" class="btn-chunky btn-sky proof-btn">
           🔍 開啟 400 題原卷對照校對表 (proof.html)
@@ -183,7 +218,7 @@ import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { usePlayerStore } from '../../stores/player';
 import { useQuestionsStore } from '../../stores/questions';
-import { normalizeGasUrl, testGasConnection, flushOfflineOutbox } from '../../lib/api';
+import { normalizeGasUrl, testGasConnection, flushOfflineOutbox, uploadQuestionsToCloud } from '../../lib/api';
 import { getOfflineOutbox } from '../../lib/db';
 
 const router = useRouter();
@@ -196,6 +231,9 @@ const gasTokenInput = ref(localStorage.getItem('quiz_custom_gas_token') || '');
 const outboxCount = ref(0);
 const syncingOutbox = ref(false);
 const showGuide = ref(false);
+const syncingPlayers = ref(false);
+const uploadingQuestions = ref(false);
+const syncingQuestions = ref(false);
 
 const testStatus = ref<{
   state: 'idle' | 'loading' | 'success' | 'error';
@@ -225,6 +263,56 @@ async function deleteKid(id: string, name: string) {
   }
 }
 
+async function syncPlayersNow() {
+  syncingPlayers.value = true;
+  try {
+    const ok = await playerStore.syncWithCloud();
+    if (ok) {
+      alert(`已成功將 ${playerStore.players.length} 位小朋友帳號同步至 Google 試算表 Players 分頁！`);
+    } else {
+      alert('同步失敗，請先確認 Google Apps Script 網址與權杖設定是否正確。');
+    }
+  } catch (err: any) {
+    alert(`同步失敗: ${err.message || '網路異常'}`);
+  } finally {
+    syncingPlayers.value = false;
+  }
+}
+
+async function uploadQuestionsToSheet() {
+  if (!confirm(`確定要將系統的 400 題完整匯入至 Google 試算表的「Questions」工作表嗎？\n此動作會將這 400 題寫入試算表，供您後續在雲端自由修改或擴充。`)) {
+    return;
+  }
+  uploadingQuestions.value = true;
+  try {
+    if (qStore.questions.length === 0) {
+      await qStore.loadQuestions();
+    }
+    const res = await uploadQuestionsToCloud(qStore.questions, true);
+    if (res.ok) {
+      alert(res.message);
+    } else {
+      alert(`匯入失敗: ${res.message}`);
+    }
+  } catch (err: any) {
+    alert(`匯入發生錯誤: ${err.message || '網路異常'}`);
+  } finally {
+    uploadingQuestions.value = false;
+  }
+}
+
+async function syncQuestionsFromSheet() {
+  syncingQuestions.value = true;
+  try {
+    const res = await qStore.syncQuestionsFromCloud(true);
+    alert(res.message);
+  } catch (err: any) {
+    alert(`同步失敗: ${err.message || '網路異常'}`);
+  } finally {
+    syncingQuestions.value = false;
+  }
+}
+
 async function runTestGas() {
   const normalizedUrl = normalizeGasUrl(gasUrlInput.value);
   gasUrlInput.value = normalizedUrl;
@@ -240,10 +328,19 @@ async function runTestGas() {
     localStorage.setItem('quiz_custom_gas_url', normalizedUrl);
     localStorage.setItem('quiz_custom_gas_token', gasTokenInput.value.trim());
 
+    // Automatically sync players to Players sheet
+    await playerStore.syncWithCloud();
+
     await refreshOutboxCount();
+
+    let extra = '';
+    if (res.details && res.details.questionsCount === 0) {
+      extra = '（💡 提示：試算表的 Questions 分頁目前尚無題目，可至下方點擊「匯入 400 題」進行題庫初始化）';
+    }
+
     testStatus.value = {
       state: 'success',
-      message: res.message,
+      message: `${res.message} 已同步 ${playerStore.players.length} 位小朋友帳號至 Players 工作表。${extra}`,
       flushed: res.flushedCount
     };
   } else {
@@ -606,5 +703,37 @@ onMounted(async () => {
 .proof-btn {
   text-decoration: none;
   font-size: 1rem;
+}
+
+.btn-sync-players {
+  background: var(--color-cream-subtle);
+  border: 1px solid var(--color-border);
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-sync-players:hover:not(:disabled) {
+  background: var(--color-cream);
+}
+
+.btn-sync-players:disabled {
+  opacity: 0.6;
+}
+
+.cloud-q-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.q-action-btn {
+  font-size: 0.92rem;
+  padding: 10px 16px;
 }
 </style>

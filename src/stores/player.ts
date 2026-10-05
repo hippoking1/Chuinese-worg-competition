@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { getLocalPlayers, saveLocalPlayers } from '../lib/db';
+import { fetchPlayersFromCloud, syncPlayersToCloud } from '../lib/api';
 import { generateSalt, hashPin } from '../lib/pin';
 import type { Player } from '../types';
 
@@ -14,19 +15,41 @@ export const usePlayerStore = defineStore('player', () => {
   async function loadPlayers() {
     let list = await getLocalPlayers();
     if (list.length === 0) {
-      // Create initial sample kid profile so user can immediately play
-      const salt = generateSalt();
-      const pinH = await hashPin('1234', salt);
-      const defaultKid: Player = {
-        id: 'player_1',
-        nickname: '小達人',
-        avatar: 'owl',
-        pinHash: pinH,
-        salt,
-        createdAt: new Date().toISOString()
-      };
-      list = [defaultKid];
+      // Try to load from cloud first if available
+      const cloudPlayers = await fetchPlayersFromCloud();
+      if (cloudPlayers && cloudPlayers.length > 0) {
+        list = cloudPlayers;
+      } else {
+        // Create initial sample kid profile so user can immediately play
+        const salt = generateSalt();
+        const pinH = await hashPin('1234', salt);
+        const defaultKid: Player = {
+          id: 'player_1',
+          nickname: '小達人',
+          avatar: 'owl',
+          pinHash: pinH,
+          salt,
+          createdAt: new Date().toISOString()
+        };
+        list = [defaultKid];
+      }
       await saveLocalPlayers(list);
+      syncPlayersToCloud(list);
+    } else {
+      // Sync with cloud in background
+      fetchPlayersFromCloud().then(async cloudPlayers => {
+        if (cloudPlayers && cloudPlayers.length > 0) {
+          const map = new Map<string, Player>();
+          list.forEach(p => map.set(p.id, p));
+          cloudPlayers.forEach(p => map.set(p.id, p));
+          const merged = Array.from(map.values()).slice(0, 3);
+          players.value = merged;
+          await saveLocalPlayers(merged);
+        } else {
+          // Cloud empty, push local players to cloud
+          syncPlayersToCloud(list);
+        }
+      });
     }
     players.value = list;
 
@@ -67,15 +90,21 @@ export const usePlayerStore = defineStore('player', () => {
     };
     players.value.push(newPlayer);
     await saveLocalPlayers(players.value);
+    syncPlayersToCloud(players.value);
     return newPlayer;
   }
 
   async function deletePlayer(id: string) {
     players.value = players.value.filter(p => p.id !== id);
     await saveLocalPlayers(players.value);
+    syncPlayersToCloud(players.value);
     if (currentPlayer.value?.id === id) {
       logout();
     }
+  }
+
+  async function syncWithCloud(): Promise<boolean> {
+    return await syncPlayersToCloud(players.value);
   }
 
   async function setParentPin(pin: string) {
@@ -113,6 +142,7 @@ export const usePlayerStore = defineStore('player', () => {
     logout,
     createPlayer,
     deletePlayer,
+    syncWithCloud,
     setParentPin,
     verifyParentPin
   };

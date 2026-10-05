@@ -47,6 +47,7 @@ export interface AnswerItem {
 export interface ExamAttempt {
   id: string;              // uuid or timestamp-id
   playerId: string;
+  playerName?: string;
   mode: ExamMode;
   year?: number;
   startedAt: string;
