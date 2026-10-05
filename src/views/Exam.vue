@@ -372,7 +372,7 @@ onMounted(() => {
 /* Portrait Layout (Phones & Tablets in portrait) */
 @media (orientation: portrait), (max-width: 768px) {
   .exam-page {
-    padding: 6px 10px;
+    padding: 6px 6px;
     gap: 6px;
   }
 

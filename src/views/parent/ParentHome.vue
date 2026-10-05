@@ -7,6 +7,29 @@
       <h2 class="page-title">⚙ 家長與題庫管理後台</h2>
     </header>
 
+    <!-- 0. App Version & Update Banner -->
+    <section class="admin-section card-chunky version-section">
+      <div class="version-banner-row">
+        <div class="version-info">
+          <div class="version-badge-pill">
+            <span class="version-dot"></span>
+            <strong>軟體版本：v1.3.0 (最新版)</strong>
+          </div>
+          <p class="version-desc">
+            若手機安裝的 App 畫面排版異常或未顯示最新功能，請點擊右側按鈕立即清空本機舊快取並重新載入。
+          </p>
+        </div>
+        <button
+          type="button"
+          class="btn-chunky btn-coral btn-force-update"
+          :disabled="isUpdatingApp"
+          @click="forceUpdateApp"
+        >
+          {{ isUpdatingApp ? '正在更新中...' : '🔄 檢查並強制更新' }}
+        </button>
+      </div>
+    </section>
+
     <!-- 1. Kids Management -->
     <section class="admin-section card-chunky">
       <div class="section-header-row">
@@ -220,10 +243,18 @@ import { usePlayerStore } from '../../stores/player';
 import { useQuestionsStore } from '../../stores/questions';
 import { normalizeGasUrl, testGasConnection, flushOfflineOutbox, uploadQuestionsToCloud } from '../../lib/api';
 import { getOfflineOutbox } from '../../lib/db';
+import { forceUpdateApp as pwaForceUpdate } from '../../pwa';
 
 const router = useRouter();
 const playerStore = usePlayerStore();
 const qStore = useQuestionsStore();
+
+const isUpdatingApp = ref(false);
+
+async function forceUpdateApp() {
+  isUpdatingApp.value = true;
+  await pwaForceUpdate();
+}
 
 const gasUrlInput = ref(localStorage.getItem('quiz_custom_gas_url') || '');
 const gasTokenInput = ref(localStorage.getItem('quiz_custom_gas_token') || '');
@@ -393,6 +424,64 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+/* Version Banner */
+.version-section {
+  background: linear-gradient(135deg, #EEF2FF 0%, #F5F3FF 100%);
+  border: 2px solid #C7D2FE;
+  padding: 16px 20px;
+}
+
+.version-banner-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.version-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 240px;
+}
+
+.version-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1.5px solid #A5B4FC;
+  color: #4338CA;
+  font-size: 0.95rem;
+  width: fit-content;
+}
+
+.version-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 6px #10B981;
+  display: inline-block;
+}
+
+.version-desc {
+  font-size: 0.85rem;
+  color: #4B5563;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.btn-force-update {
+  font-size: 0.95rem;
+  padding: 10px 18px;
+  white-space: nowrap;
 }
 
 .parent-header {

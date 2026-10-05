@@ -82,12 +82,15 @@
       </div>
 
       <!-- 6. App Version & Force Update -->
-      <div class="setting-row">
+      <div class="setting-row version-row">
         <div class="setting-info">
-          <span class="setting-title">軟體版本與更新 (PWA)</span>
-          <span class="setting-desc">目前版本：v1.3.0 (最新版)。App 會在每次開啟或連網時自動抓取最新版本；若手機顯示舊畫面，可點此強制清除快取並載入。</span>
+          <div class="version-title-row">
+            <span class="setting-title">軟體版本與更新 (PWA)</span>
+            <span class="version-tag">v1.3.0 最新版</span>
+          </div>
+          <span class="setting-desc">App 會在每次開啟或連網時自動抓取最新版本；若手機顯示舊畫面，可點此強制清除快取並載入。</span>
         </div>
-        <button type="button" class="btn-sync" :disabled="isUpdatingApp" @click="forceUpdateApp">
+        <button type="button" class="btn-sync btn-update" :disabled="isUpdatingApp" @click="handleForceUpdate">
           {{ isUpdatingApp ? '更新中...' : '🔄 檢查並強制更新' }}
         </button>
       </div>
@@ -100,6 +103,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { flushOfflineOutbox } from '../lib/api';
 import { useSettingsStore } from '../stores/settings';
+import { forceUpdateApp } from '../pwa';
 
 const router = useRouter();
 const settings = useSettingsStore();
@@ -118,29 +122,9 @@ async function handleSync() {
   }
 }
 
-async function forceUpdateApp() {
+async function handleForceUpdate() {
   isUpdatingApp.value = true;
-  try {
-    if ('serviceWorker' in navigator) {
-      const registrations = await navigator.serviceWorker.getRegistrations();
-      for (const reg of registrations) {
-        await reg.update();
-      }
-    }
-    if ('caches' in window) {
-      const keys = await caches.keys();
-      for (const key of keys) {
-        await caches.delete(key);
-      }
-    }
-    alert('已成功清除本機舊快取！即將重新載入最新版本...');
-    window.location.reload();
-  } catch (err: any) {
-    alert(`更新失敗: ${err.message || '請重新整理網頁'}`);
-    window.location.reload();
-  } finally {
-    isUpdatingApp.value = false;
-  }
+  await forceUpdateApp();
 }
 </script>
 
@@ -248,6 +232,37 @@ async function forceUpdateApp() {
   border: 1px solid var(--color-sky);
   color: var(--color-sky-dark);
   font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.version-row {
+  background: #F8FAFC;
+  border-left: 4px solid var(--color-coral);
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.version-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.version-tag {
+  background: #DCFCE7;
+  color: #15803D;
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #86EFAC;
+}
+
+.btn-update {
+  background: var(--color-coral-light);
+  border-color: var(--color-coral);
+  color: var(--color-coral-dark);
 }
 
 /* Switch Toggle Styling */

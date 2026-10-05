@@ -33,11 +33,17 @@
       </div>
     </div>
 
-    <!-- Parent Section Button -->
+    <!-- Parent Section Button & Version -->
     <div class="footer-section">
       <button type="button" class="btn-parent" @click="openParentPin">
         <span>⚙ 家長管理專區</span>
       </button>
+      <div class="version-hint-row">
+        <span class="version-text">軟體版本：v1.3.0</span>
+        <button type="button" class="btn-quick-update" @click="forceUpdateApp" title="強制清除快取更新">
+          🔄 檢查更新
+        </button>
+      </div>
     </div>
 
     <!-- PIN Modal for Kid -->
@@ -116,6 +122,7 @@ import Mascot from '../components/Mascot.vue';
 import { usePlayerStore } from '../stores/player';
 import type { Player } from '../types';
 import PinPad from './PinPad.vue';
+import { forceUpdateApp } from '../pwa';
 
 const router = useRouter();
 const playerStore = usePlayerStore();
@@ -275,16 +282,45 @@ async function submitNewKid() {
 
 .footer-section {
   margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
 }
 
 .btn-parent {
-  background: transparent;
-  border: 1px solid var(--color-border);
+  background: white;
+  border: 1.5px solid var(--color-border);
   color: var(--color-text-muted);
-  padding: 8px 20px;
+  padding: 8px 22px;
   border-radius: var(--radius-pill);
   font-size: 0.95rem;
   font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.version-hint-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+}
+
+.version-text {
+  font-weight: 600;
+}
+
+.btn-quick-update {
+  background: #EEF2FF;
+  border: 1px solid #C7D2FE;
+  color: #4338CA;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .modal-overlay {

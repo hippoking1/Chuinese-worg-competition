@@ -231,8 +231,8 @@ function speakContext() {
 
 @media (max-width: 820px), (orientation: portrait), (max-height: 520px) {
   .question-card {
-    padding: 10px 14px;
-    gap: 8px;
+    padding: 8px 12px;
+    gap: 6px;
     width: 100%;
     box-sizing: border-box;
   }
@@ -242,37 +242,51 @@ function speakContext() {
   }
 
   .type-badge {
-    font-size: 0.8rem;
-    padding: 2px 10px;
+    font-size: 0.75rem;
+    padding: 2px 8px;
   }
 
   .q-num {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+  }
+
+  .speak-btn {
+    padding: 2px 8px;
+    font-size: 0.75rem;
   }
 
   .instruction {
-    font-size: 0.95rem;
+    font-size: 0.88rem;
   }
 
   .phrase-display {
-    font-size: 2.2rem;
-    gap: 8px;
-    margin: 4px 0;
+    font-size: 1.85rem;
+    gap: 6px;
+    margin: 2px 0;
   }
 
   .char-item {
-    min-width: 40px;
+    min-width: 32px;
   }
 
   .empty-square {
-    width: 48px;
-    height: 48px;
-    font-size: 1.5rem;
-    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+    border-radius: 6px;
   }
 
   .box-zhuyin {
-    font-size: 1rem;
+    font-size: 0.85rem;
+  }
+
+  .tag-row {
+    gap: 6px;
+  }
+
+  .tag-pill {
+    font-size: 0.75rem;
+    padding: 1px 8px;
   }
 }
 </style>

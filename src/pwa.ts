@@ -3,6 +3,30 @@ import { registerSW } from 'virtual:pwa-register';
 
 export const pwaUpdating = ref(false);
 
+export async function forceUpdateApp(): Promise<void> {
+  pwaUpdating.value = true;
+  try {
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const reg of registrations) {
+        await reg.unregister();
+      }
+    }
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      for (const key of keys) {
+        await caches.delete(key);
+      }
+    }
+  } catch (err) {
+    console.warn('[PWA] Error clearing caches:', err);
+  }
+
+  const baseUrl = window.location.href.split('#')[0].split('?')[0];
+  const targetUrl = `${baseUrl}?v=${Date.now()}${window.location.hash || ''}`;
+  window.location.replace(targetUrl);
+}
+
 export function setupPWA() {
   const updateSW = registerSW({
     immediate: true,

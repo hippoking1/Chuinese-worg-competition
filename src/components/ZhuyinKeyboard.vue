@@ -472,7 +472,10 @@ onUnmounted(() => {
 }
 
 .key-btn {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0;
+  box-sizing: border-box;
   max-width: 58px;
   height: 48px;
   display: flex;
@@ -599,46 +602,62 @@ onUnmounted(() => {
 /* Responsive for Mobile Portrait & Compact Screens */
 @media (max-width: 820px), (orientation: portrait), (max-height: 520px) {
   .zhuyin-keyboard-container {
-    padding: 6px 8px;
-    gap: 6px;
+    padding: 6px 4px;
+    gap: 4px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
   .input-display-row {
-    padding: 4px 10px;
-    min-height: 42px;
+    padding: 4px 8px;
+    min-height: 38px;
   }
 
   .display-box {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
     letter-spacing: 2px;
   }
 
   .btn-action {
-    padding: 5px 8px;
-    font-size: 0.78rem;
+    padding: 4px 8px;
+    font-size: 0.75rem;
   }
 
   .keyboard-grid {
-    gap: 4px;
+    gap: 3px;
+    width: 100%;
   }
 
   .kb-row {
-    gap: 3px;
+    gap: 2px;
+    width: 100%;
+  }
+
+  .key-divider {
+    width: 1px;
+    margin: 1px 0;
   }
 
   .key-btn {
-    height: 38px;
-    font-size: 1.15rem;
-    border-radius: 6px;
+    height: 36px;
+    font-size: 1.05rem;
+    border-radius: 5px;
+    min-width: 0;
+    padding: 0;
+    border-width: 1.5px;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
   }
 
   .key-tone {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
   }
 
   .keyboard-legend {
-    gap: 8px;
-    font-size: 0.72rem;
+    gap: 6px;
+    font-size: 0.7rem;
+    margin-top: 2px;
   }
 
   .desktop-hint {
