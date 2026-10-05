@@ -29,7 +29,7 @@ export interface Player {
   createdAt: string;
 }
 
-export type ExamMode = 'official' | 'mini' | 'practice' | 'wrong' | 'year';
+export type ExamMode = 'official' | 'mini' | 'practice' | 'wrong' | 'year' | 'range';
 
 export type JudgeResult = 'ok' | 'ng' | 'unsure';
 

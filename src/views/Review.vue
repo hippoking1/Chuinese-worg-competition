@@ -79,8 +79,8 @@
           </span>
         </div>
 
-        <!-- Child's Handwriting Ink Thumbnail -->
-        <div class="ink-preview-box" @click="openReplay(q.id)">
+        <!-- Child's Handwriting Ink Thumbnail or Typed Zhuyin -->
+        <div v-if="q.type === 'form'" class="ink-preview-box" @click="openReplay(q.id)">
           <img
             v-if="getThumbnail(q.id)"
             :src="getThumbnail(q.id)"
@@ -89,6 +89,12 @@
           />
           <span v-else class="no-ink">未作答</span>
           <span class="thumb-hint">🔍 筆順</span>
+        </div>
+        <div v-else class="typed-zhuyin-box font-kaiti">
+          <span class="typed-val" :class="{ 'no-ans': !getAnswer(q.id)?.userZhuyin }">
+            {{ getAnswer(q.id)?.userZhuyin || '未作答' }}
+          </span>
+          <span class="type-hint">⌨️ 鍵盤輸入</span>
         </div>
 
         <!-- Standard Answer -->
@@ -99,7 +105,7 @@
 
         <!-- Recognized Preview -->
         <div class="recognized-cand">
-          <span class="ans-label">自動辨識</span>
+          <span class="ans-label">{{ q.type === 'sound' ? '作答結果' : '自動辨識' }}</span>
           <span class="cand-text">{{ getAnswer(q.id)?.userZhuyin || getAnswer(q.id)?.userChar || '—' }}</span>
         </div>
 
@@ -358,6 +364,45 @@ async function confirmAndFinish() {
   cursor: pointer;
   position: relative;
   overflow: hidden;
+}
+
+.typed-zhuyin-box {
+  width: 70px;
+  height: 70px;
+  border: 1px solid #BAE6FD;
+  border-radius: var(--radius-sm);
+  background: #F0F9FF;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.typed-val {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0369A1;
+  text-align: center;
+  line-height: 1.1;
+}
+
+.typed-val.no-ans {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  font-family: var(--font-ui);
+}
+
+.type-hint {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: rgba(3, 105, 161, 0.75);
+  color: white;
+  font-size: 0.55rem;
+  padding: 1px 3px;
+  border-top-left-radius: 3px;
+  font-family: var(--font-ui);
 }
 
 .ink-thumb {

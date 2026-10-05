@@ -18,8 +18,8 @@
 
     <!-- Instruction -->
     <div class="instruction">
-      <span v-if="question.type === 'sound'">請在右側寫出<strong class="highlight-text">黃色字</strong>的正確注音：</span>
-      <span v-else>請在右側寫出<strong class="highlight-text">方格中</strong>的正確國字：</span>
+      <span v-if="question.type === 'sound'">請輸入<strong class="highlight-text">黃色字</strong>的正確注音：</span>
+      <span v-else>請手寫出<strong class="highlight-text">方格中</strong>的正確國字：</span>
     </div>
 
     <!-- Phrase Display -->

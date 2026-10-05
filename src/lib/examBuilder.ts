@@ -7,10 +7,42 @@ export function buildExamQuestions(
     practiceCount?: number;
     year?: number;
     yearType?: 'sound' | 'form';
+    range?: {
+      year?: number | 'all';
+      type?: 'sound' | 'form' | 'all';
+      startNo?: number;
+      endNo?: number;
+      shuffle?: boolean;
+    };
     mastery?: Record<string, MasteryRecord>;
   }
 ): Question[] {
   const activeQuestions = allQuestions.filter(q => q.enabled);
+
+  if (mode === 'range') {
+    const range = options?.range;
+    let list = activeQuestions;
+    if (range?.year && range.year !== 'all') {
+      list = list.filter(q => q.year === range.year);
+    }
+    if (range?.type && range.type !== 'all') {
+      list = list.filter(q => q.type === range.type);
+    }
+    if (range?.startNo) {
+      list = list.filter(q => q.no >= range.startNo!);
+    }
+    if (range?.endNo) {
+      list = list.filter(q => q.no <= range.endNo!);
+    }
+    if (range?.shuffle) {
+      return shuffle(list);
+    }
+    return list.sort((a, b) => {
+      if (a.year !== b.year) return b.year - a.year;
+      if (a.type !== b.type) return a.type === 'sound' ? -1 : 1;
+      return a.no - b.no;
+    });
+  }
 
   if (mode === 'year') {
     const year = options?.year || 114;

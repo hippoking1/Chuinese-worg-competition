@@ -61,7 +61,24 @@
         </div>
       </div>
 
-      <!-- 3. Free Practice -->
+      <!-- 3. Range Practice Mode (New!) -->
+      <div class="mode-card card-chunky range-card" @click="openRangeModal">
+        <div class="card-icon-badge">🎯</div>
+        <div class="card-body">
+          <div class="card-title-row">
+            <h3 class="card-title">題庫範圍練習</h3>
+            <span class="mode-tag range-tag">重點加強</span>
+          </div>
+          <p class="card-desc">自由指定年份、題型（字音/字形）、題號區間（如 1–25 題）專項練習或限時測驗！</p>
+          <div class="card-meta">
+            <span>📚 自選範圍</span>
+            <span>⚡ 順序/亂序</span>
+            <span>⏱ 練習/計時</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Free Practice -->
       <div class="mode-card card-chunky practice-card" @click="openPracticeModal">
         <div class="card-icon-badge">📖</div>
         <div class="card-body">
@@ -77,7 +94,7 @@
         </div>
       </div>
 
-      <!-- 4. Wrong Book -->
+      <!-- 5. Wrong Book -->
       <div class="mode-card card-chunky wrong-card" @click="router.push('/wrong')">
         <div class="card-icon-badge">📕</div>
         <div class="card-body">
@@ -89,7 +106,7 @@
         </div>
       </div>
 
-      <!-- 5. Year Exam -->
+      <!-- 6. Year Exam -->
       <div class="mode-card card-chunky year-card" @click="openYearModal">
         <div class="card-icon-badge">📜</div>
         <div class="card-body">
@@ -100,16 +117,229 @@
           <p class="card-desc">114 年與 113 年全國語文競賽完整試卷（各 100 題）。</p>
         </div>
       </div>
+    </div>
 
-      <!-- 6. Stylus Calibration -->
-      <div class="mode-card card-chunky calibrate-card" @click="router.push('/calibrate')">
-        <div class="card-icon-badge">🎯</div>
-        <div class="card-body">
-          <div class="card-title-row">
-            <h3 class="card-title">注音個人化校正</h3>
-            <span class="mode-tag calibrate-tag">觸控筆專屬</span>
+    <!-- Range Exam Modal -->
+    <div v-if="showRangeModal" class="modal-overlay" @click.self="showRangeModal = false">
+      <div class="modal-card card-chunky range-modal-card">
+        <div class="modal-title-row">
+          <h3>🎯 題庫範圍練習與測驗</h3>
+          <button type="button" class="btn-close-modal" @click="showRangeModal = false">✕</button>
+        </div>
+
+        <div class="range-form">
+          <!-- 1. 年份選擇 -->
+          <div class="form-section">
+            <label class="section-label">1. 選擇年度：</label>
+            <div class="segmented-control">
+              <button
+                type="button"
+                class="seg-btn"
+                :class="{ active: rangeYear === 'all' }"
+                @click="rangeYear = 'all'"
+              >
+                全部年度
+              </button>
+              <button
+                type="button"
+                class="seg-btn"
+                :class="{ active: rangeYear === 114 }"
+                @click="rangeYear = 114"
+              >
+                114 年度
+              </button>
+              <button
+                type="button"
+                class="seg-btn"
+                :class="{ active: rangeYear === 113 }"
+                @click="rangeYear = 113"
+              >
+                113 年度
+              </button>
+            </div>
           </div>
-          <p class="card-desc">親手書寫 37 個注音符號建立專屬字跡模板，大幅提升平板手寫辨識率！</p>
+
+          <!-- 2. 題型選擇 -->
+          <div class="form-section">
+            <label class="section-label">2. 選擇題型：</label>
+            <div class="segmented-control">
+              <button
+                type="button"
+                class="seg-btn"
+                :class="{ active: rangeType === 'all' }"
+                @click="rangeType = 'all'"
+              >
+                全部 (字音＋字形)
+              </button>
+              <button
+                type="button"
+                class="seg-btn"
+                :class="{ active: rangeType === 'sound' }"
+                @click="rangeType = 'sound'"
+              >
+                僅字音 🔊 (鍵盤)
+              </button>
+              <button
+                type="button"
+                class="seg-btn"
+                :class="{ active: rangeType === 'form' }"
+                @click="rangeType = 'form'"
+              >
+                僅字形 ✍️ (手寫)
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. 題號範圍 -->
+          <div class="form-section">
+            <div class="section-label-row">
+              <label class="section-label">3. 題號區間：</label>
+              <span class="range-hint">（每份試卷各 100 題）</span>
+            </div>
+            <!-- Quick Chips -->
+            <div class="chips-row">
+              <button
+                type="button"
+                class="chip-btn"
+                :class="{ active: rangeStartNo === 1 && rangeEndNo === 25 }"
+                @click="setQuickRange(1, 25)"
+              >
+                1 ~ 25 題
+              </button>
+              <button
+                type="button"
+                class="chip-btn"
+                :class="{ active: rangeStartNo === 26 && rangeEndNo === 50 }"
+                @click="setQuickRange(26, 50)"
+              >
+                26 ~ 50 題
+              </button>
+              <button
+                type="button"
+                class="chip-btn"
+                :class="{ active: rangeStartNo === 51 && rangeEndNo === 75 }"
+                @click="setQuickRange(51, 75)"
+              >
+                51 ~ 75 題
+              </button>
+              <button
+                type="button"
+                class="chip-btn"
+                :class="{ active: rangeStartNo === 76 && rangeEndNo === 100 }"
+                @click="setQuickRange(76, 100)"
+              >
+                76 ~ 100 題
+              </button>
+              <button
+                type="button"
+                class="chip-btn"
+                :class="{ active: rangeStartNo === 1 && rangeEndNo === 50 }"
+                @click="setQuickRange(1, 50)"
+              >
+                前 50 題
+              </button>
+              <button
+                type="button"
+                class="chip-btn"
+                :class="{ active: rangeStartNo === 51 && rangeEndNo === 100 }"
+                @click="setQuickRange(51, 100)"
+              >
+                後 50 題
+              </button>
+              <button
+                type="button"
+                class="chip-btn"
+                :class="{ active: rangeStartNo === 1 && rangeEndNo === 100 }"
+                @click="setQuickRange(1, 100)"
+              >
+                1 ~ 100 全選
+              </button>
+            </div>
+
+            <!-- Custom Range Inputs -->
+            <div class="custom-range-row">
+              <span>自訂：從第</span>
+              <input
+                type="number"
+                v-model.number="rangeStartNo"
+                min="1"
+                max="100"
+                class="num-input"
+              />
+              <span>題 到 第</span>
+              <input
+                type="number"
+                v-model.number="rangeEndNo"
+                min="1"
+                max="100"
+                class="num-input"
+              />
+              <span>題</span>
+            </div>
+          </div>
+
+          <!-- 4. 模式與順序 -->
+          <div class="form-section form-toggles-row">
+            <div class="toggle-col">
+              <label class="section-label">題目順序：</label>
+              <div class="segmented-control">
+                <button
+                  type="button"
+                  class="seg-btn"
+                  :class="{ active: !rangeShuffle }"
+                  @click="rangeShuffle = false"
+                >
+                  依題號順序
+                </button>
+                <button
+                  type="button"
+                  class="seg-btn"
+                  :class="{ active: rangeShuffle }"
+                  @click="rangeShuffle = true"
+                >
+                  隨機亂序
+                </button>
+              </div>
+            </div>
+
+            <div class="toggle-col">
+              <label class="section-label">測驗方式：</label>
+              <div class="segmented-control">
+                <button
+                  type="button"
+                  class="seg-btn"
+                  :class="{ active: !rangeTimed }"
+                  @click="rangeTimed = false"
+                >
+                  自由練習 (不限時)
+                </button>
+                <button
+                  type="button"
+                  class="seg-btn"
+                  :class="{ active: rangeTimed }"
+                  @click="rangeTimed = true"
+                >
+                  計時測驗 (限時)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Summary & Start Button -->
+          <div class="range-summary-card">
+            <span>預計抽出題目：<strong class="count-highlight">{{ computedRangeCount }}</strong> 題</span>
+            <span v-if="rangeTimed" class="time-hint">⏱ 限時 {{ Math.round(computedRangeCount * 6 / 60 * 10) / 10 }} 分鐘</span>
+            <span v-else class="time-hint">📖 可隨時看標準答案</span>
+          </div>
+
+          <button
+            type="button"
+            class="btn-chunky btn-primary btn-start-range"
+            :disabled="computedRangeCount === 0"
+            @click="startRangeExam"
+          >
+            <span>🚀 開始範圍練習</span>
+          </button>
         </div>
       </div>
     </div>
@@ -152,19 +382,72 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import Mascot from '../components/Mascot.vue';
+import { buildExamQuestions } from '../lib/examBuilder';
 import { useExamStore } from '../stores/exam';
 import { usePlayerStore } from '../stores/player';
+import { useQuestionsStore } from '../stores/questions';
 import type { ExamMode } from '../types';
 
 const router = useRouter();
 const playerStore = usePlayerStore();
 const examStore = useExamStore();
+const qStore = useQuestionsStore();
 
 const showPracticeModal = ref(false);
 const showYearModal = ref(false);
+const showRangeModal = ref(false);
+
+// Range Mode Configuration
+const rangeYear = ref<number | 'all'>('all');
+const rangeType = ref<'all' | 'sound' | 'form'>('all');
+const rangeStartNo = ref(1);
+const rangeEndNo = ref(25);
+const rangeShuffle = ref(false);
+const rangeTimed = ref(false);
+
+function openRangeModal() {
+  showRangeModal.value = true;
+}
+
+function setQuickRange(start: number, end: number) {
+  rangeStartNo.value = start;
+  rangeEndNo.value = end;
+}
+
+const computedRangeCount = computed(() => {
+  const start = Math.max(1, Math.min(rangeStartNo.value || 1, rangeEndNo.value || 100));
+  const end = Math.min(100, Math.max(rangeStartNo.value || 1, rangeEndNo.value || 100));
+  const list = buildExamQuestions(qStore.questions, 'range', {
+    range: {
+      year: rangeYear.value,
+      type: rangeType.value,
+      startNo: start,
+      endNo: end,
+      shuffle: rangeShuffle.value
+    }
+  });
+  return list.length;
+});
+
+async function startRangeExam() {
+  const start = Math.max(1, Math.min(rangeStartNo.value || 1, rangeEndNo.value || 100));
+  const end = Math.min(100, Math.max(rangeStartNo.value || 1, rangeEndNo.value || 100));
+  showRangeModal.value = false;
+  await examStore.startExam('range', {
+    range: {
+      year: rangeYear.value,
+      type: rangeType.value,
+      startNo: start,
+      endNo: end,
+      shuffle: rangeShuffle.value,
+      timed: rangeTimed.value
+    }
+  });
+  router.push('/exam');
+}
 
 function getAvatarEmoji(av: string): string {
   if (av === 'owl') return '🦉';
@@ -396,5 +679,209 @@ async function startYearExam(year: number, type: 'sound' | 'form') {
   background: var(--color-cream-subtle);
   font-weight: 700;
   align-self: center;
+}
+
+/* Range Card & Modal styles */
+.range-card {
+  border-top: 6px solid #8B5CF6;
+}
+
+.range-card:hover {
+  border-color: #7C3AED;
+}
+
+.range-tag {
+  background: #EDE9FE;
+  color: #6D28D9;
+}
+
+.range-modal-card {
+  max-width: 500px;
+  text-align: left;
+  max-height: 90vh;
+  overflow-y: auto;
+  gap: 20px;
+}
+
+.modal-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title-row h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  color: var(--color-text-main);
+  font-weight: 800;
+}
+
+.btn-close-modal {
+  background: var(--color-cream-subtle);
+  border: 1px solid var(--color-border);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-weight: 800;
+  color: var(--color-text-muted);
+}
+
+.range-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.section-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+}
+
+.section-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.range-hint {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.segmented-control {
+  display: flex;
+  background: var(--color-cream-subtle);
+  padding: 3px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  gap: 3px;
+}
+
+.seg-btn {
+  flex: 1;
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  transition: all 0.15s;
+  text-align: center;
+}
+
+.seg-btn.active {
+  background: white;
+  color: var(--color-text-main);
+  box-shadow: var(--shadow-sm);
+}
+
+.chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip-btn {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: var(--radius-pill);
+  background: var(--color-cream-subtle);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-main);
+  transition: all 0.15s;
+}
+
+.chip-btn:hover {
+  background: white;
+}
+
+.chip-btn.active {
+  background: #8B5CF6;
+  border-color: #7C3AED;
+  color: white;
+  box-shadow: 0 2px 4px rgba(139, 92, 246, 0.3);
+}
+
+.custom-range-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  margin-top: 4px;
+}
+
+.num-input {
+  width: 60px;
+  padding: 6px 8px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  font-weight: 800;
+  text-align: center;
+  color: var(--color-text-main);
+  font-family: inherit;
+}
+
+.num-input:focus {
+  outline: none;
+  border-color: #8B5CF6;
+}
+
+.form-toggles-row {
+  display: flex;
+  gap: 12px;
+}
+
+.toggle-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.range-summary-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #F5F3FF;
+  border: 1px solid #DDD6FE;
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #5B21B6;
+}
+
+.count-highlight {
+  font-size: 1.25rem;
+  color: #7C3AED;
+}
+
+.time-hint {
+  font-size: 0.85rem;
+  color: #6D28D9;
+}
+
+.btn-start-range {
+  width: 100%;
+  padding: 12px 20px;
+  font-size: 1.1rem;
+  background: #8B5CF6;
+  border-color: #7C3AED;
+  color: white;
+}
+
+.btn-start-range:hover {
+  background: #7C3AED;
 }
 </style>

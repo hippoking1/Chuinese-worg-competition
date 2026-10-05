@@ -37,7 +37,7 @@
         />
 
         <!-- Instant Practice Feedback (Practice mode only) -->
-        <div v-if="examStore.currentMode === 'practice'" class="practice-feedback-card card-chunky">
+        <div v-if="examStore.currentMode === 'practice' || (examStore.currentMode === 'range' && examStore.totalDurationSec === 0)" class="practice-feedback-card card-chunky">
           <button
             type="button"
             class="btn-chunky btn-banana"
@@ -54,15 +54,14 @@
         </div>
       </div>
 
-      <!-- Right Panel: Writing Pad -->
+      <!-- Right Panel: Writing Pad or Zhuyin Keyboard -->
       <div class="panel-right">
-        <!-- Sound question: Zhuyin Pad -->
+        <!-- Sound question: Child-friendly Zhuyin Keyboard -->
         <template v-if="currentQ.type === 'sound'">
-          <ZhuyinPad
+          <ZhuyinKeyboard
             :key="currentQ.id"
-            ref="zhuyinPadRef"
-            :customTemplates="customZhuyinTemplates"
-            @change="onZhuyinChange"
+            :modelValue="currentAnswer?.userZhuyin"
+            @change="onZhuyinKeyboardChange"
           />
         </template>
 
@@ -114,7 +113,7 @@ import CountdownTimer from '../components/CountdownTimer.vue';
 import HandwritingPad from '../components/HandwritingPad.vue';
 import ProgressDots from '../components/ProgressDots.vue';
 import QuestionCard from '../components/QuestionCard.vue';
-import ZhuyinPad from '../components/ZhuyinPad.vue';
+import ZhuyinKeyboard from '../components/ZhuyinKeyboard.vue';
 import { getCalibrationTemplates } from '../lib/db';
 import { autoJudgeForm, autoJudgeSound } from '../lib/grading';
 import { recognizeHanziWithGoogle } from '../lib/recognizer/google';
@@ -129,8 +128,6 @@ const playerStore = usePlayerStore();
 const settings = useSettingsStore();
 
 const hanziPadRef = ref<any>(null);
-const zhuyinPadRef = ref<any>(null);
-const customZhuyinTemplates = ref<any[]>([]);
 const showAnswer = ref(false);
 
 const currentQ = computed(() => examStore.currentQuestion);
@@ -186,13 +183,12 @@ function onHanziClear() {
   examStore.recordAnswer(currentQ.value.id, { ink: [], cleared: true });
 }
 
-function onZhuyinChange(payload: { combinedZhuyin: string; fullInk: Ink; candidates: string[] }) {
+function onZhuyinKeyboardChange(typedZhuyin: string) {
   if (!currentQ.value) return;
   const q = currentQ.value;
-  const judge = autoJudgeSound(q, payload.candidates);
+  const judge = autoJudgeSound(q, typedZhuyin ? [typedZhuyin] : []);
   examStore.recordAnswer(q.id, {
-    ink: payload.fullInk,
-    userZhuyin: payload.combinedZhuyin,
+    userZhuyin: typedZhuyin,
     autoJudge: judge
   });
 }
@@ -220,14 +216,9 @@ async function submitExam() {
   }
 }
 
-onMounted(async () => {
+onMounted(() => {
   if (examStore.currentExam.length === 0) {
     router.push('/home');
-    return;
-  }
-  const pid = playerStore.currentPlayer?.id;
-  if (pid) {
-    customZhuyinTemplates.value = await getCalibrationTemplates(pid);
   }
 });
 </script>

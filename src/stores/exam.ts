@@ -26,7 +26,9 @@ export const useExamStore = defineStore('exam', () => {
   const isLastQuestion = computed(() => currentIndex.value >= currentExam.value.length - 1);
 
   const answeredCount = computed(() => {
-    return Object.values(answers.value).filter(a => !!a.userInk && a.userInk.length > 0).length;
+    return Object.values(answers.value).filter(
+      a => (!!a.userInk && a.userInk.length > 0) || (!!a.userZhuyin && a.userZhuyin.length > 0) || (!!a.userChar && a.userChar.length > 0)
+    ).length;
   });
 
   async function startExam(
@@ -35,6 +37,14 @@ export const useExamStore = defineStore('exam', () => {
       practiceCount?: number;
       year?: number;
       yearType?: 'sound' | 'form';
+      range?: {
+        year?: number | 'all';
+        type?: 'sound' | 'form' | 'all';
+        startNo?: number;
+        endNo?: number;
+        shuffle?: boolean;
+        timed?: boolean;
+      };
     }
   ) {
     const qStore = useQuestionsStore();
@@ -45,7 +55,7 @@ export const useExamStore = defineStore('exam', () => {
     const mastery = await getLocalMastery(pid);
 
     currentMode.value = mode;
-    examYear.value = options?.year;
+    examYear.value = typeof options?.range?.year === 'number' ? options.range.year : options?.year;
     currentIndex.value = 0;
     answers.value = {};
     isFinished.value = false;
@@ -54,6 +64,7 @@ export const useExamStore = defineStore('exam', () => {
       practiceCount: options?.practiceCount,
       year: options?.year,
       yearType: options?.yearType,
+      range: options?.range,
       mastery
     });
 
@@ -75,8 +86,13 @@ export const useExamStore = defineStore('exam', () => {
     } else if (mode === 'mini') {
       timeRemainingSec.value = 5 * 60; // 5 minutes
       totalDurationSec.value = 5 * 60;
+    } else if (mode === 'range' && options?.range?.timed) {
+      // 6 seconds per question (same ratio as 200 questions in 20 min)
+      const totalSec = Math.max(60, currentExam.value.length * 6);
+      timeRemainingSec.value = totalSec;
+      totalDurationSec.value = totalSec;
     } else {
-      timeRemainingSec.value = 0; // Practice mode: no countdown limit
+      timeRemainingSec.value = 0; // Practice mode / untimed: no countdown limit
       totalDurationSec.value = 0;
     }
 
