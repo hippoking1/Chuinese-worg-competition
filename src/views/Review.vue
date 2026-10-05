@@ -195,8 +195,13 @@ function openReplay(qId: string) {
 }
 
 async function confirmAndFinish() {
-  await examStore.finishExam();
-  router.push('/result');
+  try {
+    await examStore.finishExam();
+  } catch (err) {
+    console.error('Failed to confirm and finish exam:', err);
+  } finally {
+    router.push('/result');
+  }
 }
 </script>
 

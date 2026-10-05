@@ -59,6 +59,7 @@
         <!-- Sound question: Zhuyin Pad -->
         <template v-if="currentQ.type === 'sound'">
           <ZhuyinPad
+            :key="currentQ.id"
             ref="zhuyinPadRef"
             :customTemplates="customZhuyinTemplates"
             @change="onZhuyinChange"
@@ -68,6 +69,7 @@
         <!-- Form question: Full Character Handwriting Pad -->
         <template v-else>
           <HandwritingPad
+            :key="currentQ.id"
             ref="hanziPadRef"
             :modelValue="currentAnswer?.userInk"
             :showToolbar="!settings.strictMode"
@@ -209,8 +211,13 @@ async function submitExam() {
       return;
     }
   }
-  await examStore.finishExam();
-  router.push('/review');
+  try {
+    await examStore.finishExam();
+  } catch (err) {
+    console.error('Failed to save exam attempt:', err);
+  } finally {
+    router.push('/review');
+  }
 }
 
 onMounted(async () => {

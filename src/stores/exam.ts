@@ -192,7 +192,7 @@ export const useExamStore = defineStore('exam', () => {
       formCorrect,
       formTotal,
       score: finalScore,
-      answers: answers.value,
+      answers: JSON.parse(JSON.stringify(answers.value)),
       syncedToCloud: false
     };
 

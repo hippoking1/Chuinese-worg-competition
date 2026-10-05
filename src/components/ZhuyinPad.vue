@@ -89,8 +89,10 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { recognizePointcloud, type PPoint, type PTemplate } from '../lib/recognizer/dollarP';
+import { recognizeZhuyinWithGoogle } from '../lib/recognizer/google';
 import { classifyTone } from '../lib/recognizer/tone';
 import { DEFAULT_ZHUYIN_TEMPLATES } from '../lib/recognizer/zhuyinTemplates';
+import { FINALS, INITIALS, MEDIALS } from '../lib/zhuyin';
 import type { Ink } from '../types';
 import HandwritingPad from './HandwritingPad.vue';
 
@@ -118,6 +120,10 @@ const slot2Cand = ref('');
 const slot3Cand = ref('');
 const detectedTone = ref<1 | 2 | 3 | 4 | 0>(1);
 
+let slot1Timer: number | null = null;
+let slot2Timer: number | null = null;
+let slot3Timer: number | null = null;
+
 const templates = computed(() => {
   return [...(props.customTemplates || []), ...DEFAULT_ZHUYIN_TEMPLATES];
 });
@@ -132,29 +138,67 @@ function inkToPoints(ink: Ink): PPoint[] {
   return pts;
 }
 
-function recognizeSlot(ink: Ink): string {
+function recognizeSlotLocal(ink: Ink, allowed: string[]): string {
   if (!ink || ink.length === 0) return '';
   const pts = inkToPoints(ink);
-  const res = recognizePointcloud(pts, templates.value);
+  const filteredTemplates = templates.value.filter(t => allowed.includes(t.name));
+  const res = recognizePointcloud(pts, filteredTemplates.length > 0 ? filteredTemplates : templates.value);
   return res.length > 0 ? res[0].name : '';
 }
 
 function onSlot1Change(ink: Ink) {
   slot1Ink.value = ink;
-  slot1Cand.value = recognizeSlot(ink);
+  slot1Cand.value = recognizeSlotLocal(ink, INITIALS);
   notifyChange();
+
+  if (slot1Timer) clearTimeout(slot1Timer);
+  if (ink.length > 0) {
+    slot1Timer = window.setTimeout(async () => {
+      const dims = slot1Ref.value?.getCanvasDimensions() || { width: 100, height: 90 };
+      const cands = await recognizeZhuyinWithGoogle(ink, dims.width, dims.height, INITIALS);
+      if (cands.length > 0 && slot1Ink.value === ink) {
+        slot1Cand.value = cands[0];
+        notifyChange();
+      }
+    }, 200);
+  }
 }
 
 function onSlot2Change(ink: Ink) {
   slot2Ink.value = ink;
-  slot2Cand.value = recognizeSlot(ink);
+  slot2Cand.value = recognizeSlotLocal(ink, MEDIALS);
   notifyChange();
+
+  if (slot2Timer) clearTimeout(slot2Timer);
+  if (ink.length > 0) {
+    slot2Timer = window.setTimeout(async () => {
+      const dims = slot2Ref.value?.getCanvasDimensions() || { width: 100, height: 90 };
+      const cands = await recognizeZhuyinWithGoogle(ink, dims.width, dims.height, MEDIALS);
+      if (cands.length > 0 && slot2Ink.value === ink) {
+        slot2Cand.value = cands[0];
+        notifyChange();
+      }
+    }, 200);
+  }
 }
 
+const SLOT3_ALLOWED = [...FINALS, ...MEDIALS];
 function onSlot3Change(ink: Ink) {
   slot3Ink.value = ink;
-  slot3Cand.value = recognizeSlot(ink);
+  slot3Cand.value = recognizeSlotLocal(ink, SLOT3_ALLOWED);
   notifyChange();
+
+  if (slot3Timer) clearTimeout(slot3Timer);
+  if (ink.length > 0) {
+    slot3Timer = window.setTimeout(async () => {
+      const dims = slot3Ref.value?.getCanvasDimensions() || { width: 100, height: 90 };
+      const cands = await recognizeZhuyinWithGoogle(ink, dims.width, dims.height, SLOT3_ALLOWED);
+      if (cands.length > 0 && slot3Ink.value === ink) {
+        slot3Cand.value = cands[0];
+        notifyChange();
+      }
+    }, 200);
+  }
 }
 
 function onToneChange(ink: Ink) {
@@ -213,6 +257,9 @@ function notifyChange() {
 }
 
 function clearAll() {
+  if (slot1Timer) clearTimeout(slot1Timer);
+  if (slot2Timer) clearTimeout(slot2Timer);
+  if (slot3Timer) clearTimeout(slot3Timer);
   slot1Ink.value = [];
   slot2Ink.value = [];
   slot3Ink.value = [];

@@ -9,12 +9,20 @@ const KEY_MASTERY = 'quiz_mastery';
 const KEY_OUTBOX = 'quiz_outbox';
 const KEY_CALIBRATION = 'quiz_calibration_templates';
 
+function toPlain<T>(data: T): T {
+  try {
+    return JSON.parse(JSON.stringify(data));
+  } catch {
+    return data;
+  }
+}
+
 export async function getLocalQuestions(): Promise<Question[] | null> {
   return (await get<Question[]>(KEY_QUESTIONS)) || null;
 }
 
 export async function saveLocalQuestions(questions: Question[]): Promise<void> {
-  await set(KEY_QUESTIONS, questions);
+  await set(KEY_QUESTIONS, toPlain(questions));
 }
 
 export async function getLocalPlayers(): Promise<Player[]> {
@@ -22,7 +30,7 @@ export async function getLocalPlayers(): Promise<Player[]> {
 }
 
 export async function saveLocalPlayers(players: Player[]): Promise<void> {
-  await set(KEY_PLAYERS, players);
+  await set(KEY_PLAYERS, toPlain(players));
 }
 
 export async function getLocalAttempts(playerId?: string): Promise<ExamAttempt[]> {
@@ -43,7 +51,7 @@ export async function saveLocalAttempt(attempt: ExamAttempt): Promise<void> {
   if (all.length > 50) {
     all.length = 50;
   }
-  await set(KEY_ATTEMPTS, all);
+  await set(KEY_ATTEMPTS, toPlain(all));
 }
 
 export async function getLocalMastery(playerId: string): Promise<Record<string, MasteryRecord>> {
@@ -54,7 +62,7 @@ export async function getLocalMastery(playerId: string): Promise<Record<string, 
 export async function saveLocalMastery(playerId: string, mastery: Record<string, MasteryRecord>): Promise<void> {
   const all = (await get<Record<string, Record<string, MasteryRecord>>>(KEY_MASTERY)) || {};
   all[playerId] = mastery;
-  await set(KEY_MASTERY, all);
+  await set(KEY_MASTERY, toPlain(all));
 }
 
 export async function getCalibrationTemplates(playerId: string): Promise<PTemplate[]> {
@@ -65,7 +73,7 @@ export async function getCalibrationTemplates(playerId: string): Promise<PTempla
 export async function saveCalibrationTemplates(playerId: string, templates: PTemplate[]): Promise<void> {
   const all = (await get<Record<string, PTemplate[]>>(KEY_CALIBRATION)) || {};
   all[playerId] = templates;
-  await set(KEY_CALIBRATION, all);
+  await set(KEY_CALIBRATION, toPlain(all));
 }
 
 export async function getOfflineOutbox(): Promise<ExamAttempt[]> {
@@ -76,19 +84,19 @@ export async function addToOfflineOutbox(attempt: ExamAttempt): Promise<void> {
   const outbox = await getOfflineOutbox();
   if (!outbox.some(a => a.id === attempt.id)) {
     outbox.push(attempt);
-    await set(KEY_OUTBOX, outbox);
+    await set(KEY_OUTBOX, toPlain(outbox));
   }
 }
 
 export async function removeFromOfflineOutbox(attemptId: string): Promise<void> {
   const outbox = await getOfflineOutbox();
   const filtered = outbox.filter(a => a.id !== attemptId);
-  await set(KEY_OUTBOX, filtered);
+  await set(KEY_OUTBOX, toPlain(filtered));
 }
 
 export async function saveAttemptInk(attemptId: string, qId: string, ink: Ink): Promise<void> {
   const key = `ink_${attemptId}_${qId}`;
-  await set(key, ink);
+  await set(key, toPlain(ink));
 }
 
 export async function getAttemptInk(attemptId: string, qId: string): Promise<Ink | null> {

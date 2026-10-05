@@ -32,21 +32,21 @@
         <button
           type="button"
           class="btn-chunky btn-primary btn-save-symbol"
-          :disabled="currentInk.length === 0"
+          :disabled="currentInk.length === 0 || isSaving"
           @click="saveCurrentAndNext"
         >
-          <span>記錄並下一個 ➔</span>
+          <span>{{ currentIndex === symbols.length - 1 ? '🎉 完成校正並儲存' : '記錄並下一個 ➔' }}</span>
         </button>
       </div>
     </div>
 
     <!-- Completion Screen -->
     <div v-else class="completed-card card-chunky">
-      <Mascot size="lg" mood="cheer" speech="太棒了！專屬注音筆跡已建立完成！🦉✨" />
-      <h2>校正完成！</h2>
+      <Mascot size="lg" mood="cheer" speech="太棒了！37 個注音專屬筆跡已建立完成！🦉✨" />
+      <h2>🎉 校正完成！</h2>
       <p>系統已學會你的專屬手寫風格，字音測驗辨識率將大幅提升！</p>
       <button type="button" class="btn-chunky btn-primary" @click="router.push('/home')">
-        回到首頁開始測驗
+        回到首頁開始測驗 ➔
       </button>
     </div>
   </div>
@@ -72,6 +72,7 @@ const padRef = ref<any>(null);
 const currentInk = ref<Ink>([]);
 const recordedTemplates = ref<PTemplate[]>([]);
 const isCompleted = ref(false);
+const isSaving = ref(false);
 
 const currentSymbol = computed(() => symbols[currentIndex.value]);
 
@@ -80,7 +81,7 @@ function onStrokeChange(ink: Ink) {
 }
 
 async function saveCurrentAndNext() {
-  if (currentInk.value.length === 0) return;
+  if (currentInk.value.length === 0 || isSaving.value) return;
 
   const pts: PPoint[] = [];
   currentInk.value.forEach((stroke, strokeId) => {
@@ -101,9 +102,17 @@ async function saveCurrentAndNext() {
     currentIndex.value++;
   } else {
     // Finish
-    const pid = playerStore.currentPlayer?.id || 'guest';
-    await saveCalibrationTemplates(pid, recordedTemplates.value);
-    isCompleted.value = true;
+    isSaving.value = true;
+    try {
+      const pid = playerStore.currentPlayer?.id || 'guest';
+      await saveCalibrationTemplates(pid, recordedTemplates.value);
+      isCompleted.value = true;
+    } catch (err) {
+      console.error('Failed to save calibration templates:', err);
+      alert('儲存校正資料發生錯誤，請重試！');
+    } finally {
+      isSaving.value = false;
+    }
   }
 }
 </script>
