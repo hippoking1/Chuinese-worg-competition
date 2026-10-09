@@ -14,9 +14,10 @@ export const useExamStore = defineStore('exam', () => {
   const examYear = ref<number | undefined>(undefined);
   const answers = ref<Record<string, AnswerItem>>({});
   
-  const timeRemainingSec = ref<number>(1200);
-  const totalDurationSec = ref<number>(1200);
+  const timeRemainingSec = ref<number>(600);
+  const totalDurationSec = ref<number>(600);
   const timerRunning = ref<boolean>(false);
+  const isTimeUp = ref<boolean>(false);
   let timerInterval: number | null = null;
 
   const activeAttempt = ref<ExamAttempt | null>(null);
@@ -60,6 +61,7 @@ export const useExamStore = defineStore('exam', () => {
     currentIndex.value = 0;
     answers.value = {};
     isFinished.value = false;
+    isTimeUp.value = false;
 
     currentExam.value = buildExamQuestions(qStore.questions, mode, {
       practiceCount: options?.practiceCount,
@@ -82,14 +84,14 @@ export const useExamStore = defineStore('exam', () => {
 
     // Set timer
     if (mode === 'official') {
-      timeRemainingSec.value = 20 * 60; // 20 minutes
-      totalDurationSec.value = 20 * 60;
+      timeRemainingSec.value = 10 * 60; // 10 minutes (全國競賽標準)
+      totalDurationSec.value = 10 * 60;
     } else if (mode === 'mini') {
       timeRemainingSec.value = 5 * 60; // 5 minutes
       totalDurationSec.value = 5 * 60;
     } else if (mode === 'range' && options?.range?.timed) {
-      // 6 seconds per question (same ratio as 200 questions in 20 min)
-      const totalSec = Math.max(60, currentExam.value.length * 6);
+      // 3 seconds per question (same pace as 200 questions in 10 min)
+      const totalSec = Math.max(60, currentExam.value.length * 3);
       timeRemainingSec.value = totalSec;
       totalDurationSec.value = totalSec;
     } else {
@@ -105,12 +107,13 @@ export const useExamStore = defineStore('exam', () => {
     if (totalDurationSec.value > 0) {
       timerRunning.value = true;
       timerInterval = window.setInterval(() => {
-        if (timeRemainingSec.value > 0) {
+        if (timeRemainingSec.value > 1) {
           timeRemainingSec.value--;
         } else {
-          // Time's up! Auto finish
+          // Time's up! Force stop immediately
+          timeRemainingSec.value = 0;
           stopTimer();
-          finishExam();
+          isTimeUp.value = true;
         }
       }, 1000);
     }
@@ -134,6 +137,8 @@ export const useExamStore = defineStore('exam', () => {
       cleared?: boolean;
     }
   ) {
+    if (isFinished.value || isTimeUp.value) return;
+
     if (!answers.value[qId]) {
       answers.value[qId] = {
         questionId: qId,
@@ -170,6 +175,9 @@ export const useExamStore = defineStore('exam', () => {
 
   async function finishExam(): Promise<ExamAttempt> {
     stopTimer();
+    if (isFinished.value && activeAttempt.value) {
+      return activeAttempt.value;
+    }
     isFinished.value = true;
 
     const pStore = usePlayerStore();
@@ -265,6 +273,7 @@ export const useExamStore = defineStore('exam', () => {
     timeRemainingSec,
     totalDurationSec,
     timerRunning,
+    isTimeUp,
     activeAttempt,
     isFinished,
     currentQuestion,

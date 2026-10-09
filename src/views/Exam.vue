@@ -1,9 +1,9 @@
 <template>
-  <div class="exam-page" :class="{ 'left-handed': settings.dominantHand === 'left' }">
+  <div class="exam-page" :class="{ 'left-handed': settings.dominantHand === 'left', 'locked': isTimeUp || isSubmitting }">
     <!-- Top Bar -->
     <header class="exam-header">
       <div class="header-left">
-        <button type="button" class="btn-exit" @click="confirmExit" title="結束測驗">
+        <button type="button" class="btn-exit" @click="confirmExit" title="結束測驗" :disabled="isSubmitting || isTimeUp">
           <span>✕ 離開</span>
         </button>
         <CountdownTimer v-if="examStore.totalDurationSec > 0" :seconds="examStore.timeRemainingSec" />
@@ -19,6 +19,7 @@
         <button
           type="button"
           class="btn-chunky btn-coral btn-submit"
+          :disabled="isSubmitting || isTimeUp"
           @click="submitExam"
         >
           <span>交卷 🏁</span>
@@ -97,17 +98,30 @@
         <button
           type="button"
           class="btn-chunky btn-primary btn-next"
+          :disabled="isSubmitting || isTimeUp"
           @click="goNext"
         >
           <span>{{ examStore.isLastQuestion ? '前往批改 ➔' : '下一題 ➔' }}</span>
         </button>
       </div>
     </footer>
+
+    <!-- Time's Up Forced Submit Modal -->
+    <div v-if="showTimeUpModal" class="time-up-overlay">
+      <div class="time-up-card card-chunky">
+        <div class="time-up-icon">⏰</div>
+        <h2 class="time-up-title">測驗時間到！</h2>
+        <p class="time-up-desc">作答時間已結束，系統已停止作答並自動交卷。</p>
+        <div class="time-up-status">
+          <span>⏳ 正在結算成績並前往批改頁面...</span>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import CountdownTimer from '../components/CountdownTimer.vue';
 import HandwritingPad from '../components/HandwritingPad.vue';
@@ -129,12 +143,15 @@ const settings = useSettingsStore();
 
 const hanziPadRef = ref<any>(null);
 const showAnswer = ref(false);
+const isSubmitting = ref(false);
+const showTimeUpModal = ref(false);
 
 const currentQ = computed(() => examStore.currentQuestion);
 const currentAnswer = computed(() => {
   if (!currentQ.value) return null;
   return examStore.answers[currentQ.value.id] || null;
 });
+const isTimeUp = computed(() => examStore.isTimeUp);
 
 function isIndexAnswered(idx: number): boolean {
   const q = examStore.currentExam[idx];
@@ -144,11 +161,13 @@ function isIndexAnswered(idx: number): boolean {
 }
 
 function jumpToIndex(idx: number) {
+  if (isSubmitting.value || isTimeUp.value) return;
   examStore.currentIndex = idx;
   showAnswer.value = false;
 }
 
 function goNext() {
+  if (isSubmitting.value || isTimeUp.value) return;
   if (examStore.isLastQuestion) {
     submitExam();
   } else {
@@ -160,7 +179,7 @@ function goNext() {
 // Background recognition for Chinese character
 let debounceTimer: number | null = null;
 function onHanziChange(ink: Ink) {
-  if (!currentQ.value) return;
+  if (!currentQ.value || isSubmitting.value || isTimeUp.value) return;
   const q = currentQ.value;
 
   examStore.recordAnswer(q.id, { ink });
@@ -179,12 +198,12 @@ function onHanziChange(ink: Ink) {
 }
 
 function onHanziClear() {
-  if (!currentQ.value) return;
+  if (!currentQ.value || isSubmitting.value || isTimeUp.value) return;
   examStore.recordAnswer(currentQ.value.id, { ink: [], cleared: true });
 }
 
 function onZhuyinKeyboardChange(typedZhuyin: string) {
-  if (!currentQ.value) return;
+  if (!currentQ.value || isSubmitting.value || isTimeUp.value) return;
   const q = currentQ.value;
   const judge = autoJudgeSound(q, typedZhuyin ? [typedZhuyin] : []);
   examStore.recordAnswer(q.id, {
@@ -194,6 +213,7 @@ function onZhuyinKeyboardChange(typedZhuyin: string) {
 }
 
 function confirmExit() {
+  if (isSubmitting.value || isTimeUp.value) return;
   if (confirm('確定要結束本次測驗嗎？已作答的內容將不會保留。')) {
     examStore.stopTimer();
     router.push('/home');
@@ -201,11 +221,18 @@ function confirmExit() {
 }
 
 async function submitExam() {
+  if (isSubmitting.value || isTimeUp.value) return;
   const unanswered = examStore.currentExam.length - examStore.answeredCount;
   if (unanswered > 0) {
     if (!confirm(`還有 ${unanswered} 題尚未作答，確定要交卷嗎？`)) {
       return;
     }
+  }
+  isSubmitting.value = true;
+  examStore.stopTimer();
+  if (debounceTimer) {
+    clearTimeout(debounceTimer);
+    debounceTimer = null;
   }
   try {
     await examStore.finishExam();
@@ -216,9 +243,62 @@ async function submitExam() {
   }
 }
 
+async function forceSubmitOnTimeUp() {
+  if (isSubmitting.value) return;
+  isSubmitting.value = true;
+  examStore.stopTimer();
+
+  if (debounceTimer) {
+    clearTimeout(debounceTimer);
+    debounceTimer = null;
+  }
+
+  showTimeUpModal.value = true;
+
+  try {
+    await examStore.finishExam();
+  } catch (err) {
+    console.error('Failed to auto-submit on timeout:', err);
+  }
+
+  // Display time up modal for 1.2s then transition to review
+  setTimeout(() => {
+    router.replace('/review');
+  }, 1200);
+}
+
+watch(
+  () => examStore.isTimeUp,
+  (timeUp) => {
+    if (timeUp && !isSubmitting.value) {
+      forceSubmitOnTimeUp();
+    }
+  }
+);
+
+watch(
+  () => examStore.timeRemainingSec,
+  (remSec) => {
+    if (examStore.totalDurationSec > 0 && remSec <= 0 && !isSubmitting.value) {
+      forceSubmitOnTimeUp();
+    }
+  }
+);
+
 onMounted(() => {
   if (examStore.currentExam.length === 0) {
     router.push('/home');
+    return;
+  }
+  if (examStore.totalDurationSec > 0 && (examStore.timeRemainingSec <= 0 || examStore.isTimeUp)) {
+    forceSubmitOnTimeUp();
+  }
+});
+
+onUnmounted(() => {
+  if (debounceTimer) {
+    clearTimeout(debounceTimer);
+    debounceTimer = null;
   }
 });
 </script>
@@ -486,6 +566,124 @@ onMounted(() => {
   .btn-next {
     padding: 6px 12px;
     font-size: 0.85rem;
+  }
+}
+
+/* Locked state & disabled buttons */
+.exam-page.locked {
+  pointer-events: none;
+  user-select: none;
+}
+
+.exam-page.locked .time-up-overlay {
+  pointer-events: auto;
+}
+
+.btn-exit:disabled,
+.btn-submit:disabled,
+.btn-next:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+
+/* Time Up Overlay Modal */
+.time-up-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.time-up-card {
+  background: #ffffff;
+  border-radius: var(--radius-lg, 16px);
+  padding: 32px 24px;
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.25);
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.time-up-icon {
+  font-size: 3.5rem;
+  line-height: 1;
+  animation: ringBell 1s infinite alternate ease-in-out;
+}
+
+.time-up-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #ef4444;
+  margin: 0;
+}
+
+.time-up-desc {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text-main, #333333);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.time-up-status {
+  margin-top: 8px;
+  padding: 8px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-pill, 9999px);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #b91c1c;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes ringBell {
+  0% {
+    transform: rotate(-10deg);
+  }
+  50% {
+    transform: rotate(10deg);
+  }
+  100% {
+    transform: rotate(-10deg);
   }
 }
 </style>

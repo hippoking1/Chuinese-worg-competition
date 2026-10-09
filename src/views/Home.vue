@@ -36,9 +36,9 @@
             <h3 class="card-title">全國競賽正式模擬</h3>
             <span class="mode-tag official-tag">競賽規格</span>
           </div>
-          <p class="card-desc">比照全國語文競賽：字音 100 題 ＋ 字形 100 題，限時 20 分鐘，滿分 100 分！</p>
+          <p class="card-desc">比照全國語文競賽：字音 100 題 ＋ 字形 100 題，限時 10 分鐘，滿分 100 分！</p>
           <div class="card-meta">
-            <span>⏱ 20 分鐘</span>
+            <span>⏱ 10 分鐘</span>
             <span>📝 200 題</span>
             <span>🎯 0.5 分/字</span>
           </div>
@@ -406,7 +406,7 @@
               <span>預計練習：<strong class="count-highlight">{{ finalRangeCount }}</strong> 題</span>
               <span class="range-total-note">（範圍總計 {{ totalInRangeCount }} 題）</span>
             </div>
-            <span v-if="rangeTimed" class="time-hint">⏱ 限時 {{ Math.round(finalRangeCount * 6 / 60 * 10) / 10 }} 分鐘</span>
+            <span v-if="rangeTimed" class="time-hint">⏱ 限時 {{ Math.max(1, Math.round(finalRangeCount * 3 / 60 * 10) / 10) }} 分鐘</span>
             <span v-else class="time-hint">📖 可隨時看標準答案</span>
           </div>
 
